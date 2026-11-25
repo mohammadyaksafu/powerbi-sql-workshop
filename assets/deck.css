@@ -1,0 +1,195 @@
+/* ============================================================
+   Power BI with SQL — slide deck styles (shared by every day)
+   ============================================================ */
+:root {
+  --navy: #0D1F3C;
+  --navy-2: #162B52;
+  --yellow: #F2C811;
+  --yellow-l: #FFF6CC;
+  --blue: #2563EB;
+  --blue-l: #E8F0FE;
+  --orange: #C2410C;
+  --orange-l: #FDEEE6;
+  --teal: #0F766E;
+  --teal-l: #E3F3F1;
+  --ink: #0D1F3C;
+  --muted: #5B6B82;
+  --line: #E3E8F0;
+  --bg: #F7F9FC;
+  --card: #FFFFFF;
+  --ok: #16A34A;
+  --bad: #DC2626;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: #07122A;
+  overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+code, .mono { font-family: "JetBrains Mono", Consolas, monospace; }
+
+/* ---------- Stage: fixed 16:9 canvas scaled to the window ---------- */
+.deck { position: fixed; inset: 0; display: grid; place-items: center; }
+.stage {
+  width: 1280px; height: 720px; position: relative; flex: none;
+  transform-origin: center; overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+}
+
+/* ---------- Slides ---------- */
+.slide {
+  position: absolute; inset: 0;
+  background: var(--bg);
+  padding: 56px 80px 76px;
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden;
+  transform: translateX(60px);
+  transition: opacity .55s var(--ease), transform .55s var(--ease), visibility .55s;
+}
+.slide.past { transform: translateX(-60px); }
+.slide.active { opacity: 1; visibility: visible; transform: none; }
+
+.slide.dark {
+  background:
+    radial-gradient(900px 500px at 85% 15%, rgba(37, 99, 235, .28), transparent 60%),
+    radial-gradient(700px 500px at 5% 100%, rgba(242, 200, 17, .12), transparent 60%),
+    var(--navy);
+  color: #fff;
+}
+
+/* ---------- Typography ---------- */
+.kicker {
+  font-size: 14px; font-weight: 700; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--blue); display: flex; align-items: center; gap: 12px;
+}
+.kicker .num {
+  background: var(--blue); color: #fff; letter-spacing: 0; border-radius: 6px;
+  padding: 3px 8px; font-size: 13px;
+}
+.dark .kicker { color: var(--yellow); }
+h1 { font-size: 104px; line-height: .98; font-weight: 800; letter-spacing: -.035em; }
+h2 { font-size: 46px; line-height: 1.1; font-weight: 800; letter-spacing: -.02em; margin-top: 12px; }
+h3 { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.lead { font-size: 22px; line-height: 1.5; color: var(--muted); margin-top: 14px; max-width: 920px; }
+.dark .lead { color: #B8C4D9; }
+.hl { color: var(--yellow); }
+.blue { color: var(--blue); }
+.muted { color: var(--muted); }
+.body { flex: 1; display: flex; align-items: center; gap: 48px; margin-top: 20px; min-height: 0; }
+.center { justify-content: center; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+  padding: 26px 28px; box-shadow: 0 10px 30px rgba(13, 31, 60, .06);
+}
+.badge {
+  width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center;
+  font-size: 26px; background: var(--blue-l); flex: none;
+}
+.pill {
+  display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: 14px;
+  font-weight: 700; background: var(--blue-l); color: var(--blue);
+}
+
+/* ---------- Data tables ---------- */
+.tbl-wrap { display: flex; flex-direction: column; gap: 10px; }
+.tbl-title {
+  font-size: 14px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+  display: flex; align-items: center; gap: 10px;
+}
+.tbl {
+  border-collapse: separate; border-spacing: 0; font-size: 20px; background: #fff;
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(13, 31, 60, .07);
+}
+.tbl th {
+  background: var(--navy); color: #fff; text-align: left; font-weight: 600; font-size: 16px;
+  padding: 12px 22px; white-space: nowrap;
+}
+.tbl td { padding: 11px 22px; border-top: 1px solid var(--line); white-space: nowrap; }
+.tbl td.num { font-family: "JetBrains Mono", Consolas, monospace; font-size: 18px; }
+.key {
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; padding: 2px 6px; border-radius: 5px;
+  background: var(--yellow); color: var(--navy); margin-left: 8px; vertical-align: 2px;
+}
+.key.fk { background: #93C5FD; }
+
+/* ---------- Code ---------- */
+.code {
+  background: var(--navy); color: #E6EDF7; border-radius: 18px; padding: 30px 34px;
+  font-family: "JetBrains Mono", Consolas, monospace; font-size: 26px; line-height: 1.7;
+  box-shadow: 0 20px 40px rgba(13, 31, 60, .2); position: relative;
+}
+.code .kw { color: #60A5FA; font-weight: 700; }
+.code .str { color: var(--yellow); }
+.code .op { color: #F472B6; }
+.code .dots { position: absolute; top: 14px; left: 18px; display: flex; gap: 7px; }
+.code .dots i { width: 11px; height: 11px; border-radius: 50%; background: #334766; display: block; }
+
+/* ---------- Animations (play each time a slide becomes active) ---------- */
+.a { opacity: 0; }
+.active .a {
+  animation: fadeUp .75s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 130ms + 150ms);
+}
+.active .a.pop   { animation-name: pop; }
+.active .a.left  { animation-name: fadeLeft; }
+.active .a.right { animation-name: fadeRight; }
+.active .a.fade  { animation-name: fade; }
+
+@keyframes fadeUp    { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes fadeLeft  { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+@keyframes fadeRight { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+@keyframes fade      { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop       { 0% { opacity: 0; transform: scale(.7); } 70% { opacity: 1; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes pulse     { 0%, 100% { box-shadow: 0 0 0 0 rgba(242, 200, 17, .6); } 50% { box-shadow: 0 0 0 12px rgba(242, 200, 17, 0); } }
+@keyframes shake     { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+@keyframes draw      { to { stroke-dashoffset: 0; } }
+@keyframes grow      { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes float     { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* Fragments: hidden until the presenter presses Next */
+.frag { opacity: 0; transform: translateY(10px); transition: opacity .45s var(--ease), transform .45s var(--ease); }
+.frag.on { opacity: 1; transform: none; }
+
+/* ---------- Presenter UI ---------- */
+.ui-foot {
+  position: absolute; left: 80px; right: 80px; bottom: 26px; display: flex; justify-content: space-between;
+  align-items: center; font-size: 13px; font-weight: 600; color: var(--muted); z-index: 20; pointer-events: none;
+}
+.ui-foot .brand b { color: var(--ink); }
+.stage[data-theme="dark"] .ui-foot, .stage[data-theme="dark"] .ui-foot .brand b { color: #8FA0BD; }
+.progress { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(13, 31, 60, .08); z-index: 20; }
+.progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), var(--yellow)); transition: width .5s var(--ease); }
+.nav {
+  position: absolute; bottom: 14px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .9); color: var(--navy); font-size: 24px; line-height: 1; cursor: pointer; z-index: 21;
+  opacity: 0; transition: opacity .3s;
+}
+.stage:hover .nav { opacity: 1; }
+.nav.prev { right: 74px; }
+.nav.next { right: 26px; }
+.nav:focus-visible { opacity: 1; outline: 3px solid var(--yellow); }
+.hint {
+  position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); color: #8FA0BD; font-size: 13px;
+  background: rgba(13, 31, 60, .85); padding: 8px 14px; border-radius: 999px; transition: opacity .6s; z-index: 50;
+}
+.hint kbd { background: #24385E; color: #fff; padding: 1px 7px; border-radius: 4px; font-family: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+@media print {
+  body { overflow: visible; background: #fff; }
+  .deck { position: static; display: block; }
+  .stage { transform: none !important; box-shadow: none; height: auto; overflow: visible; }
+  .slide { position: relative; opacity: 1; visibility: visible; transform: none; height: 720px; page-break-after: always; }
+  .a, .frag { opacity: 1 !important; transform: none !important; animation: none !important; }
+  .ui-foot, .progress, .nav, .hint { display: none; }
+}
