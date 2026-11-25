@@ -81,6 +81,120 @@
   .quote { margin-top: 26px; text-align: center; font-size: 24px; font-weight: 600; }
   .quote b { background: var(--yellow-l); padding: 2px 8px; border-radius: 6px; }
 
+  /* Compact tables used across the Excel vs Database slides */
+  .tbl.sm { font-size: 17px; }
+  .tbl.sm th { font-size: 14px; padding: 9px 16px; }
+  .tbl.sm td { padding: 8px 16px; }
+  .tbl.sm td.num { font-size: 16px; }
+  .tbl td.sid { background: var(--blue-l); color: var(--blue); font-weight: 700; }
+  .tbl td.cid { background: var(--yellow-l); font-weight: 700; }
+
+  /* What is Excel */
+  .xl-grid-wrap { display: grid; grid-template-columns: 1.35fr 1fr; gap: 40px; width: 100%; align-items: center; }
+  .sheet { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 16px 40px rgba(13,31,60,.1); }
+  .sheet .fxbar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #F3F6FA; }
+  .sheet .fxbar i { font-style: italic; font-weight: 700; color: var(--muted); font-family: Georgia, serif; }
+  .sheet .fxbar code { font-size: 17px; background: #fff; border: 1px solid var(--line); padding: 4px 10px; border-radius: 6px; flex: 1; }
+  .sheet table { border-collapse: collapse; width: 100%; font-size: 17px; }
+  .sheet th { background: #EEF2F7; color: var(--muted); font-weight: 600; font-size: 13px; padding: 6px 10px; border: 1px solid var(--line); }
+  .sheet td { padding: 8px 14px; border: 1px solid var(--line); white-space: nowrap; }
+  .sheet td.h { font-weight: 700; background: #E7F6EC; }
+  .sheet td.cellhl { position: relative; }
+  .active .sheet td.cellhl { animation: cellOn .5s var(--ease) 1.2s both; }
+  @keyframes cellOn { to { outline: 3px solid #16A34A; outline-offset: -3px; background: #ECFDF3; font-weight: 800; } }
+  .sheet td.fx { color: #16A34A; font-family: "JetBrains Mono", Consolas, monospace; font-size: 15px; }
+  .sheet tr.dots td, .sheet tr.dots th { color: var(--muted); padding: 2px 10px; }
+  .cell-note { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .cell-note span { font-size: 15px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; }
+  .cell-note b { color: #16A34A; }
+  .feat { display: flex; flex-direction: column; gap: 10px; }
+  .feat .card { display: flex; gap: 14px; align-items: center; padding: 12px 18px; }
+  .feat .badge { width: 42px; height: 42px; font-size: 21px; background: #E7F6EC; }
+  .feat h3 { font-size: 19px; }
+  .feat p { font-size: 15px; color: var(--muted); margin-top: 2px; }
+
+  /* What is a database */
+  .three { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 20px; }
+  .three .link-word { align-self: center; font-size: 30px; color: var(--blue); font-weight: 800; }
+  .db-note { margin-top: 22px; display: flex; gap: 14px; }
+  .db-note .card { padding: 14px 20px; font-size: 18px; flex: 1; }
+
+  /* Comparison table */
+  .cmp { width: 100%; font-size: 19px; }
+  .cmp.tbl.sm td { padding: 10px 18px; }
+  .cmp td:first-child { font-weight: 700; color: var(--navy); width: 22%; }
+  .cmp td:last-child { background: var(--blue-l); }
+  .cmp th:last-child { background: var(--blue); }
+  .cmp td { white-space: normal; }
+
+  /* Redundancy */
+  .redund { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; width: 100%; align-items: start; }
+  .redund h3 { margin-bottom: 10px; font-size: 21px; }
+  .swap { display: inline-grid; }
+  .swap > span { grid-area: 1 / 1; }
+  .swap .new { opacity: 0; color: var(--bad); font-weight: 800; }
+  .active .swap .old { animation: fade .4s 2.2s reverse both; }
+  .active .swap .new { animation: fade .4s 2.4s both; }
+  .active td.chgcell { animation: badcell .4s 2.2s both; }
+  @keyframes badcell { to { background: #FEF2F2; } }
+  .warn { margin-top: 12px; color: var(--bad); font-weight: 700; font-size: 17px; }
+  .good { margin-top: 12px; color: var(--ok); font-weight: 700; font-size: 17px; }
+  .stack-tbls { display: flex; gap: 18px; align-items: flex-start; }
+
+  /* Many users */
+  .users { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; width: 100%; }
+  .users .card { text-align: center; padding: 18px 16px; }
+  .users .badge { margin: 0 auto 10px; }
+  .users p { font-size: 16px; color: var(--muted); margin-top: 4px; }
+  .flow-down { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; width: 100%; height: 44px; }
+  .flow-down i { justify-self: center; width: 3px; height: 100%; background: repeating-linear-gradient(to bottom, var(--blue) 0 6px, transparent 6px 12px); display: block; }
+  .dbms-bar { width: 100%; background: var(--navy); color: #fff; border-radius: 18px; padding: 18px 26px; display: flex; align-items: center; gap: 18px; }
+  .dbms-bar .badge { background: rgba(242,200,17,.18); }
+  .dbms-bar p { color: #B8C4D9; font-size: 17px; margin-top: 2px; }
+  .dbms-bar .tables { margin-left: auto; display: flex; gap: 8px; }
+  .dbms-bar .tables span { background: #1D3461; color: #D6DEEC; font-size: 14px; padding: 6px 12px; border-radius: 8px; font-weight: 600; }
+
+  /* DBMS vs Database */
+  .dbms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; width: 100%; align-items: center; }
+  .stack { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  .stack .layer { border-radius: 16px; padding: 14px 20px; display: flex; align-items: center; gap: 14px; }
+  .stack .layer h3 { font-size: 19px; }
+  .stack .layer p { font-size: 15px; color: var(--muted); }
+  .stack .down { text-align: center; font-size: 14px; font-weight: 700; color: var(--blue); padding: 6px 0; }
+  .layer.app { background: #fff; border: 1px solid var(--line); }
+  .layer.dbms { background: var(--navy); color: #fff; }
+  .layer.dbms p { color: #B8C4D9; }
+  .layer.store { background: var(--blue-l); border: 2px solid var(--blue); }
+  .layer .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .layer .chips span { font-size: 12px; font-weight: 700; background: #1D3461; color: #fff; padding: 3px 9px; border-radius: 999px; }
+  .layer .chips span.us { background: var(--yellow); color: var(--navy); }
+
+  /* ACID */
+  .acid-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; width: 100%; align-items: center; }
+  .transfer { display: flex; align-items: center; gap: 14px; }
+  .acct { flex: 1; text-align: center; padding: 18px; }
+  .acct small { color: var(--muted); font-weight: 600; font-size: 14px; }
+  .acct div { font-size: 30px; font-weight: 800; margin-top: 4px; font-family: "JetBrains Mono", Consolas, monospace; }
+  .coin-lane { width: 110px; height: 40px; position: relative; }
+  .coin-lane::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 3px dashed #C5CFDE; }
+  .coin-lane b { position: absolute; top: 4px; left: 0; background: var(--yellow); color: var(--navy); font-size: 13px; padding: 6px 8px; border-radius: 999px; white-space: nowrap; }
+  .active .coin-lane b { animation: coin 2.4s var(--ease) 1.2s infinite; }
+  @keyframes coin { 0% { left: -10px; opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { left: 60px; opacity: 0; } }
+  .tsteps { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .tsteps .card { padding: 12px 18px; font-size: 18px; display: flex; gap: 12px; align-items: center; }
+  .tsteps .card.fail { background: #FEF2F2; border-color: #FECACA; color: var(--bad); font-weight: 700; }
+  .acid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .acid .card { padding: 16px 18px; }
+  .acid .L { font-size: 34px; font-weight: 800; color: var(--blue); line-height: 1; }
+  .acid h3 { font-size: 18px; margin-top: 6px; }
+  .acid p { font-size: 15px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+  /* When to use which */
+  .vs.use li { font-size: 19px; }
+  .teamwork { margin-top: 22px; display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 19px; font-weight: 600; }
+  .teamwork span { background: #fff; border: 1px solid var(--line); padding: 8px 16px; border-radius: 12px; }
+  .teamwork i { font-style: normal; color: var(--blue); font-weight: 800; }
+
   /* Table / row / column */
   .legend { display: flex; flex-direction: column; gap: 18px; flex: 1; }
   .legend .item { display: flex; gap: 18px; align-items: center; }
@@ -351,6 +465,269 @@
     </div>
   </section>
 
+  <!-- 6a · What is Excel -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">Excel: a spreadsheet for calculating</h2>
+    <div class="body">
+      <div class="xl-grid-wrap">
+        <div class="a left" style="--i:2">
+          <div class="sheet">
+            <div class="fxbar"><i>fx</i><code>=AVERAGE(D2:D101)</code></div>
+            <table>
+              <tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+              <tr><th>1</th><td class="h">Student ID</td><td class="h">Name</td><td class="h">Department</td><td class="h">CGPA</td></tr>
+              <tr><th>2</th><td>101</td><td>Rahim</td><td>SWE</td><td class="cellhl">3.75</td></tr>
+              <tr><th>3</th><td>102</td><td>Karim</td><td>CSE</td><td>3.60</td></tr>
+              <tr><th>4</th><td>103</td><td>Sakib</td><td>SWE</td><td>3.90</td></tr>
+              <tr><th>5</th><td>104</td><td>Nabil</td><td>CSE</td><td>3.50</td></tr>
+              <tr class="dots"><th>⋮</th><td>⋮</td><td>⋮</td><td>⋮</td><td>⋮</td></tr>
+              <tr><th>102</th><td colspan="3"><b>Average of 100 students</b></td><td class="fx">=AVERAGE…</td></tr>
+            </table>
+          </div>
+          <div class="cell-note">
+            <span><b>Row</b> = one student</span>
+            <span><b>Column</b> = one attribute</span>
+            <span><b>Cell</b> = row × column → D2 = 3.75</span>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="card a right" style="--i:3"><div class="badge">✍️</div><div><h3>Data entry</h3><p>Type values straight into cells</p></div></div>
+          <div class="card a right" style="--i:4"><div class="badge">🧮</div><div><h3>Formulas</h3><p>SUM, AVERAGE, COUNT, IF…</p></div></div>
+          <div class="card a right" style="--i:5"><div class="badge">🔍</div><div><h3>Filter &amp; sort</h3><p>Find and order rows quickly</p></div></div>
+          <div class="card a right" style="--i:6"><div class="badge">📈</div><div><h3>Charts</h3><p>Turn numbers into graphs</p></div></div>
+          <div class="card a right" style="--i:7"><div class="badge">🧾</div><div><h3>Pivot tables</h3><p>Summary reports in a few clicks</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6b · What is a database -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">Database: organised data, split into linked tables</h2>
+    <p class="lead a" style="--i:2">Built so data is easy to <b style="color:var(--ink)">store, find, update and share</b> — even for 10,000 students with courses, results and payments.</p>
+    <div class="body" style="flex-direction:column;justify-content:center;align-items:stretch;gap:0">
+      <div class="three">
+        <div class="tbl-wrap a left" style="--i:3">
+          <div class="tbl-title">Students</div>
+          <table class="tbl sm">
+            <tr><th>student_id</th><th>name</th><th>department</th></tr>
+            <tr><td class="num sid">101</td><td>Rahim</td><td>SWE</td></tr>
+            <tr><td class="num sid">102</td><td>Karim</td><td>CSE</td></tr>
+            <tr><td class="num sid">103</td><td>Sakib</td><td>SWE</td></tr>
+          </table>
+        </div>
+        <div class="link-word a fade" style="--i:6">⟷</div>
+        <div class="tbl-wrap a" style="--i:5">
+          <div class="tbl-title">Enrollments</div>
+          <table class="tbl sm">
+            <tr><th>student_id</th><th>course_id</th></tr>
+            <tr><td class="num sid">101</td><td class="num cid">501</td></tr>
+            <tr><td class="num sid">101</td><td class="num cid">502</td></tr>
+            <tr><td class="num sid">102</td><td class="num cid">503</td></tr>
+            <tr><td class="num sid">103</td><td class="num cid">501</td></tr>
+          </table>
+        </div>
+        <div class="link-word a fade" style="--i:6">⟷</div>
+        <div class="tbl-wrap a right" style="--i:4">
+          <div class="tbl-title">Courses</div>
+          <table class="tbl sm">
+            <tr><th>course_id</th><th>course_name</th></tr>
+            <tr><td class="num cid">501</td><td>Database</td></tr>
+            <tr><td class="num cid">502</td><td>AI</td></tr>
+            <tr><td class="num cid">503</td><td>Networking</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="db-note">
+        <div class="card a" style="--i:8">🔁 A student takes <b>many</b> courses · a course has <b>many</b> students → <b>many-to-many</b></div>
+        <div class="card a" style="--i:9">🔗 <b>Enrollments</b> connects them — Rahim (101) takes Database &amp; AI</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6c · Side-by-side comparison -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">Side by side</h2>
+    <div class="body">
+      <table class="tbl sm cmp a" style="--i:2">
+        <tr><th>Topic</th><th>📗 Excel</th><th>🗄️ Database</th></tr>
+        <tr><td>Main purpose</td><td>Calculation &amp; analysis</td><td>Storing &amp; managing data</td></tr>
+        <tr><td>Data size</td><td>Small to medium</td><td>Large scale — millions of rows</td></tr>
+        <tr><td>Relationships</td><td>Manual (VLOOKUP / XLOOKUP)</td><td>Built in — primary &amp; foreign keys</td></tr>
+        <tr><td>Many users</td><td>Limited co-authoring</td><td>Many users at the same time</td></tr>
+        <tr><td>Security</td><td>File or sheet password</td><td>User accounts &amp; permissions</td></tr>
+        <tr><td>Data quality</td><td>Easy to type anything anywhere</td><td>Rules (types, keys, constraints) block bad data</td></tr>
+        <tr><td>Asking questions</td><td>Filters &amp; formulas</td><td>SQL queries</td></tr>
+        <tr><td>Transactions</td><td>Save the file</td><td>ACID transactions — all or nothing</td></tr>
+        <tr><td>Backup</td><td>Copy the file</td><td>Built-in backup &amp; recovery</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6d · Duplicate data -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">Why duplicate data is a problem</h2>
+    <div class="body">
+      <div class="redund">
+        <div class="a left" style="--i:2">
+          <h3>📗 One big sheet — Rahim typed 4 times</h3>
+          <table class="tbl sm">
+            <tr><th>Student</th><th>Department</th><th>Course</th></tr>
+            <tr><td>Rahim</td><td>SWE</td><td>Database</td></tr>
+            <tr><td>Rahim</td><td>SWE</td><td>AI</td></tr>
+            <tr><td>Rahim</td><td class="chgcell"><span class="swap"><span class="old">SWE</span><span class="new">CSE</span></span></td><td>Networking</td></tr>
+            <tr><td>Rahim</td><td>SWE</td><td>Security</td></tr>
+          </table>
+          <div class="warn a fade" style="--i:18">✗ Changed 1 row, forgot 3 — which department is right?</div>
+        </div>
+        <div class="a right" style="--i:4">
+          <h3>🗄️ Database — store each fact once</h3>
+          <div class="stack-tbls">
+            <table class="tbl sm">
+              <tr><th>student_id</th><th>name</th><th>dept</th></tr>
+              <tr><td class="num sid">101</td><td>Rahim</td><td>SWE</td></tr>
+            </table>
+            <table class="tbl sm">
+              <tr><th>student_id</th><th>course_id</th></tr>
+              <tr><td class="num sid">101</td><td class="num">501</td></tr>
+              <tr><td class="num sid">101</td><td class="num">502</td></tr>
+              <tr><td class="num sid">101</td><td class="num">503</td></tr>
+              <tr><td class="num sid">101</td><td class="num">504</td></tr>
+            </table>
+          </div>
+          <div class="good a fade" style="--i:19">✓ Change the department once — everywhere is correct</div>
+        </div>
+      </div>
+    </div>
+    <div class="quote a" style="--i:21">1,000 students × 5 courses = <b>5,000 rows</b>. Storing each fact once is called <b>normalization</b>.</div>
+  </section>
+
+  <!-- 6e · Many users at once -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">Many people, one database, the same moment</h2>
+    <div class="body" style="flex-direction:column;justify-content:center;align-items:stretch;gap:0">
+      <div class="users">
+        <div class="card a pop" style="--i:2"><div class="badge">🗂️</div><h3>Admin</h3><p>Updates student info</p></div>
+        <div class="card a pop" style="--i:3"><div class="badge">📋</div><h3>Teacher</h3><p>Marks attendance</p></div>
+        <div class="card a pop" style="--i:4"><div class="badge">🎓</div><h3>Student</h3><p>Checks results</p></div>
+        <div class="card a pop" style="--i:5"><div class="badge">💳</div><h3>Accounts</h3><p>Records a payment</p></div>
+      </div>
+      <div class="flow-down a fade" style="--i:6"><i></i><i></i><i></i><i></i></div>
+      <div class="dbms-bar a" style="--i:7">
+        <div class="badge">⚙️</div>
+        <div><h3>DBMS</h3><p>Lets everyone work at once — without overwriting each other</p></div>
+        <div class="tables"><span>Students</span><span>Attendance</span><span>Results</span><span>Payments</span></div>
+      </div>
+    </div>
+    <div class="quote a" style="--i:9">Excel co-authoring suits a few people on one sheet — <b>not thousands of changes a minute</b>.</div>
+  </section>
+
+  <!-- 6f · Database vs DBMS -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">Database ≠ DBMS — five words to know</h2>
+    <div class="body">
+      <div class="dbms-grid">
+        <table class="tbl sm a left" style="--i:2">
+          <tr><th>Term</th><th>Meaning</th></tr>
+          <tr><td><b>Data</b></td><td>Raw facts</td></tr>
+          <tr><td><b>Database</b></td><td>An organised collection of data</td></tr>
+          <tr><td><b>DBMS</b></td><td>The software that manages a database</td></tr>
+          <tr><td><b>RDBMS</b></td><td>A DBMS for related tables</td></tr>
+          <tr><td><b>SQL</b></td><td>The language we use to talk to it</td></tr>
+        </table>
+        <div class="stack">
+          <div class="layer app a right" style="--i:3"><div class="badge">🖥️</div><div><h3>Your app or website</h3><p>Or Power BI, or SSMS</p></div></div>
+          <div class="down a fade" style="--i:4">↓ sends SQL</div>
+          <div class="layer dbms a right" style="--i:5"><div class="badge" style="background:rgba(242,200,17,.18)">⚙️</div><div><h3>DBMS</h3>
+            <div class="chips"><span class="us">SQL Server ← this course</span><span>MySQL</span><span>PostgreSQL</span><span>MongoDB (NoSQL)</span></div></div></div>
+          <div class="down a fade" style="--i:6">↓ reads &amp; writes</div>
+          <div class="layer store a right" style="--i:7"><div class="badge">🗄️</div><div><h3>Database</h3><p>Students · Courses · Results · Payments</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6g · ACID -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">ACID: why banks trust databases</h2>
+    <div class="body">
+      <div class="acid-grid">
+        <div class="a left" style="--i:2">
+          <div class="transfer">
+            <div class="card acct"><small>Rahim's account</small><div>৳5,000</div></div>
+            <div class="coin-lane"><b>৳1,000</b></div>
+            <div class="card acct"><small>Karim's account</small><div>৳2,000</div></div>
+          </div>
+          <div class="tsteps">
+            <div class="card">① Take ৳1,000 from Rahim</div>
+            <div class="card">② Add ৳1,000 to Karim</div>
+            <div class="card fail frag"><span>⚡</span><span>Fails after step ①? → <b>Rollback</b>: both balances go back. No money lost.</span></div>
+          </div>
+        </div>
+        <div class="acid">
+          <div class="card a pop" style="--i:4"><div class="L">A</div><h3>Atomicity</h3><p>All or nothing</p></div>
+          <div class="card a pop" style="--i:5"><div class="L">C</div><h3>Consistency</h3><p>The rules always hold</p></div>
+          <div class="card a pop" style="--i:6"><div class="L">I</div><h3>Isolation</h3><p>Transactions don't see each other's half-done work</p></div>
+          <div class="card a pop" style="--i:7"><div class="L">D</div><h3>Durability</h3><p>Once saved, it stays saved</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6h · When to use which -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">So… when do I use which?</h2>
+    <div class="body" style="flex-direction:column;justify-content:center;gap:0">
+      <div class="vs use">
+        <div class="card xl a left" style="--i:2">
+          <div class="head"><div class="badge">📗</div><h3>Use Excel for…</h3></div>
+          <ul>
+            <li>A list of 50 club members</li>
+            <li>Workshop attendance &amp; scores</li>
+            <li>Budgets and monthly expenses</li>
+            <li>Quick charts &amp; pivot tables</li>
+          </ul>
+        </div>
+        <div class="mid a pop" style="--i:3">VS</div>
+        <div class="card db a right" style="--i:4">
+          <div class="head"><div class="badge">🗄️</div><h3 class="blue">Use a database for…</h3></div>
+          <ul>
+            <li>1,000+ members or customers</li>
+            <li>Registration, login &amp; permissions</li>
+            <li>Many users at the same time</li>
+            <li>Data that must never be lost</li>
+          </ul>
+        </div>
+      </div>
+      <div class="teamwork a" style="--i:6">
+        Not rivals — teammates:
+        <span>🗄️ Database stores</span><i>→</i><span>💬 SQL pulls</span><i>→</i><span>📗📊 Excel / Power BI reports</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6i · Excel or Database? quiz -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Database vs Excel</div>
+    <h2 class="a" style="--i:1">Excel or database? <span class="muted" style="font-size:22px;font-weight:600">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="quiz">
+        <div class="card a" style="--i:2"><div class="q"><span>Q1</span>Attendance and average score for 50 workshop participants</div><div class="ans frag">📗 Excel — small, quick calculation</div></div>
+        <div class="card a" style="--i:3"><div class="q"><span>Q2</span>A banking app handling millions of transactions a day</div><div class="ans frag">🗄️ Database — ACID, many users</div></div>
+        <div class="card a" style="--i:4"><div class="q"><span>Q3</span>A university with 20,000 students, courses, results and payments</div><div class="ans frag">🗄️ Database — large &amp; related tables</div></div>
+        <div class="card a" style="--i:5"><div class="q"><span>Q4</span>A monthly expense report with charts and a pivot table</div><div class="ans frag">📗 Excel — analysis &amp; reporting</div></div>
+      </div>
+    </div>
+  </section>
+
   <!-- 7 · Table, row, column -->
   <section class="slide">
     <div class="kicker a" style="--i:0"><span class="num">02</span> Table, row, column</div>
@@ -588,7 +965,7 @@
     <h2 class="a" style="--i:1">What to remember from today</h2>
     <div class="body">
       <div class="recap">
-        <div class="card a pop" style="--i:2"><div class="badge">🗄️</div><p>A <b>database</b> stores data in <b>tables</b> — safe, shared and huge.</p></div>
+        <div class="card a pop" style="--i:2"><div class="badge">🗄️</div><p><b>Excel</b> calculates &amp; reports. A <b>database</b> stores data in <b>tables</b> — safe, shared and huge.</p></div>
         <div class="card a pop" style="--i:3"><div class="badge">🧱</div><p><b>Row</b> = one record. <b>Column</b> = one detail.</p></div>
         <div class="card a pop" style="--i:4"><div class="badge">🔑</div><p><b>Primary key</b> identifies a row. <b>Foreign key</b> links tables.</p></div>
         <div class="card a pop" style="--i:5"><div class="badge">🚚</div><p><b>SQL</b> gets the data → <b>Power BI</b> tells the story.</p></div>
