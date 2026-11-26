@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Install your tools with PowerShell — Power BI with SQL</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Source of install-tools.pdf. Print with Chrome: A4, no headers/footers. */
+  @page { size: A4; margin: 0; }
+  :root { --navy:#0D1F3C; --yellow:#F2C811; --yellow-l:#FFF6CC; --blue:#2563EB; --blue-l:#E8F0FE; --teal:#0F766E; --teal-l:#E3F3F1; --orange:#C2410C; --muted:#5B6B82; --line:#E3E8F0; --ok:#16A34A; --bad:#DC2626; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Inter", "Segoe UI", sans-serif; color: var(--navy); -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10pt; line-height: 1.45; }
+  code, .cmd { font-family: "JetBrains Mono", Consolas, monospace; font-variant-ligatures: none; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 15mm 16mm; position: relative; overflow: hidden; page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  .foot { position: absolute; left: 16mm; right: 16mm; bottom: 9mm; display: flex; justify-content: space-between; font-size: 8pt; color: var(--muted); border-top: 1px solid var(--line); padding-top: 3mm; }
+  .foot b { color: var(--navy); }
+
+  header.hero { background: var(--navy); color: #fff; margin: -13mm -15mm 4mm; padding: 9mm 15mm 7mm; position: relative; }
+  header.hero::after { content: ""; position: absolute; right: 15mm; top: 9mm; width: 20mm; height: 20mm; border-radius: 6mm; background: radial-gradient(circle at 30% 30%, rgba(242,200,17,.9), rgba(242,200,17,.15)); }
+  .kicker { font-size: 8pt; font-weight: 800; letter-spacing: .25em; text-transform: uppercase; color: var(--yellow); }
+  h1 { font-size: 22pt; line-height: 1.1; font-weight: 800; letter-spacing: -.02em; margin-top: 3mm; max-width: 140mm; }
+  h1 span { color: var(--yellow); }
+  header.hero p { color: #B8C4D9; margin-top: 3mm; font-size: 10.5pt; max-width: 140mm; }
+  h2 { font-size: 13.5pt; font-weight: 800; margin: 3.5mm 0 2mm; display: flex; align-items: center; gap: 3mm; }
+  h2 .n { background: var(--blue); color: #fff; border-radius: 2mm; font-size: 9pt; padding: .6mm 2.2mm; }
+  p.note { color: var(--muted); }
+
+  .cmd { background: var(--navy); color: #E6EDF7; border-radius: 3mm; padding: 2.6mm 4mm; font-size: 9pt; line-height: 1.55; white-space: pre; margin-top: 2mm; }
+  .cmd .p { color: #8FA0BD; } .cmd .kw { color: #60A5FA; font-weight: 700; } .cmd .s { color: var(--yellow); } .cmd .c { color: #8FA0BD; font-style: italic; } .cmd .r { color: #86EFAC; }
+  code.i { background: var(--blue-l); color: var(--blue); padding: .2mm 1.4mm; border-radius: 1mm; font-size: 8.6pt; white-space: nowrap; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+  .step { border: 1px solid var(--line); border-radius: 3mm; padding: 2.4mm 3.2mm; }
+  .step b { display: inline-grid; place-items: center; width: 5.5mm; height: 5.5mm; border-radius: 50%; background: var(--yellow); font-size: 8pt; margin-bottom: 1mm; }
+  .step p { font-size: 9.3pt; }
+
+  .tool { border: 1px solid var(--line); border-left: 2mm solid var(--blue); border-radius: 3mm; padding: 2.6mm 4mm; margin-top: 2.4mm; break-inside: avoid; }
+  .tool.ss { border-left-color: var(--teal); } .tool.pb { border-left-color: var(--yellow); }
+  .tool .top { display: flex; justify-content: space-between; align-items: baseline; gap: 4mm; }
+  .tool h3 { font-size: 12pt; font-weight: 800; }
+  .tool .tag { font-size: 8pt; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .tool ul { margin: 1.8mm 0 0 4.5mm; font-size: 9.2pt; }
+  .tool li { margin-top: .8mm; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 9.3pt; margin-top: 2mm; }
+  th { background: var(--navy); color: #fff; text-align: left; padding: 1.6mm 3mm; font-weight: 600; }
+  td { border-bottom: 1px solid var(--line); padding: 1.4mm 3mm; vertical-align: top; }
+  td:first-child { font-weight: 700; width: 38%; }
+
+  .box { border-radius: 3mm; padding: 3mm 4mm; margin-top: 3.5mm; font-size: 9.2pt; line-height: 1.6; break-inside: avoid; }
+  .box.y { background: var(--yellow-l); border: 1px solid #F5DF7A; }
+  .box.g { background: #ECFDF3; border: 1px solid #BBF7D0; }
+  .box h4 { font-size: 10.5pt; margin-bottom: 1mm; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .check { list-style: none; margin-top: 2mm; }
+  .check li { padding-left: 7mm; position: relative; margin-top: 1.2mm; }
+  .check li::before { content: ""; position: absolute; left: 0; top: .6mm; width: 3.8mm; height: 3.8mm; border: 1.5px solid var(--navy); border-radius: 1mm; }
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 ============ -->
+<section class="page">
+  <header class="hero">
+    <div class="kicker">Power BI with SQL · Leading University · Homework before Day 02</div>
+    <h1>Install your three tools <span>with PowerShell</span></h1>
+    <p>One command each for SQL Server 2022 Express, SSMS and Power BI Desktop. Plan 20–40 minutes and keep your laptop plugged in.</p>
+  </header>
+
+  <h2><span class="n">1</span> Before you start</h2>
+  <div class="steps">
+    <div class="step"><b>1</b><p><strong>Windows 10 or 11</strong>, 64-bit, with about <strong>10 GB free</strong> on drive C: and a stable internet connection.</p></div>
+    <div class="step"><b>2</b><p><strong>Open PowerShell as Administrator:</strong> right-click <strong>Start</strong> → <strong>Terminal (Admin)</strong> or <strong>Windows PowerShell (Admin)</strong> → click <strong>Yes</strong>.</p></div>
+    <div class="step"><b>3</b><p><strong>Check winget is there.</strong> Run the command below. A version number such as <code class="i">v1.9…</code> means you're ready.</p></div>
+  </div>
+  <div class="cmd"><span class="p">PS&gt; </span><span class="kw">winget</span> --version</div>
+  <p class="note" style="margin-top:1.5mm">“winget is not recognized”? See the fixes on page 2.</p>
+
+  <h2><span class="n">2</span> Run the three commands, one at a time</h2>
+  <p class="note">Copy each command exactly, press <strong>Enter</strong>, and wait until you see <em>“Successfully installed”</em> before running the next one. The two <code class="i">--accept-…</code> flags answer the licence questions for you. The <code class="i">`</code> at a line end means “continues on the next line”: paste both lines together.</p>
+
+  <div class="tool">
+    <div class="top"><h3>① SQL Server 2022 Express</h3><span class="tag">the database server · free</span></div>
+    <div class="cmd"><span class="p">PS&gt; </span><span class="kw">winget install</span> -e --id <span class="s">Microsoft.SQLServer.2022.Express</span> `
+      --accept-package-agreements --accept-source-agreements</div>
+    <ul>
+      <li>If a SQL Server setup window opens, choose <strong>Basic</strong>, accept the licence and keep the default folder.</li>
+      <li>At the end, note the <strong>instance name</strong>: <code class="i">SQLEXPRESS</code>. Your server name will be <code class="i">localhost\SQLEXPRESS</code>.</li>
+    </ul>
+  </div>
+
+  <div class="tool ss">
+    <div class="top"><h3>② SQL Server Management Studio (SSMS)</h3><span class="tag">where we write and run SQL</span></div>
+    <div class="cmd"><span class="p">PS&gt; </span><span class="kw">winget install</span> -e --id <span class="s">Microsoft.SQLServerManagementStudio.22</span> `
+      --accept-package-agreements --accept-source-agreements</div>
+    <ul>
+      <li>This is the biggest download. Let it finish even if the progress bar seems stuck.</li>
+      <li>If winget says no package was found, search for the current ID: <code class="i">winget search "SQL Server Management Studio"</code></li>
+    </ul>
+  </div>
+
+  <div class="tool pb">
+    <div class="top"><h3>③ Power BI Desktop</h3><span class="tag">builds the dashboards · free</span></div>
+    <div class="cmd"><span class="p">PS&gt; </span><span class="kw">winget install</span> -e --id <span class="s">Microsoft.PowerBI</span> `
+      --accept-package-agreements --accept-source-agreements</div>
+    <ul>
+      <li>We use it from Day 05. No account is needed to open it: close the sign-in box if it appears.</li>
+    </ul>
+  </div>
+
+  <div class="foot"><span><b>Power BI with SQL</b> · Install guide</span><span>Page 1 of 2</span></div>
+</section>
+
+<!-- ============ PAGE 2 ============ -->
+<section class="page">
+  <h2 style="margin-top:0"><span class="n">3</span> Check that everything worked</h2>
+  <div class="cmd"><span class="c"># All three tools should be listed</span>
+<span class="p">PS&gt; </span><span class="kw">winget list</span> --id <span class="s">Microsoft.SQLServer.2022.Express</span>
+<span class="p">PS&gt; </span><span class="kw">winget list</span> --id <span class="s">Microsoft.SQLServerManagementStudio.22</span>
+<span class="p">PS&gt; </span><span class="kw">winget list</span> --id <span class="s">Microsoft.PowerBI</span>
+
+<span class="c"># The database service should say Running</span>
+<span class="p">PS&gt; </span><span class="kw">Get-Service</span> <span class="s">'MSSQL$SQLEXPRESS'</span>
+<span class="r">Status   Name               DisplayName</span>
+<span class="r">Running  MSSQL$SQLEXPRESS   SQL Server (SQLEXPRESS)</span></div>
+  <p class="note" style="margin-top:2mm">Status is <em>Stopped</em>? Start it with <code class="i">Start-Service 'MSSQL$SQLEXPRESS'</code>. Keep the single quotes: without them PowerShell treats <code class="i">$SQLEXPRESS</code> as a variable.</p>
+
+  <h2><span class="n">4</span> First connection in SSMS</h2>
+  <div class="two">
+    <table>
+      <tr><th colspan="2">Connect to Server window</th></tr>
+      <tr><td>Server type</td><td>Database Engine</td></tr>
+      <tr><td>Server name</td><td><code class="i">localhost\SQLEXPRESS</code></td></tr>
+      <tr><td>Authentication</td><td>Windows Authentication</td></tr>
+      <tr><td>Encryption / certificate</td><td>Tick <strong>Trust server certificate</strong></td></tr>
+    </table>
+    <div>
+      <p>Click <strong>Connect</strong>, then <strong>New Query</strong> and run:</p>
+      <div class="cmd"><span class="kw">SELECT</span> @@VERSION;</div>
+      <p class="note" style="margin-top:2mm">One row starting with <em>Microsoft SQL Server 2022 … Express Edition</em> means you're done. 🎉</p>
+    </div>
+  </div>
+
+  <h2><span class="n">5</span> If something goes wrong</h2>
+  <table>
+    <tr><th>Problem</th><th>Fix</th></tr>
+    <tr><td>“winget is not recognized”</td><td>Install / update <strong>App Installer</strong> from the Microsoft Store, then reopen PowerShell (Admin).</td></tr>
+    <tr><td>“No package found matching input criteria”</td><td>Run <code class="i">winget source update</code>, then search: <code class="i">winget search PowerBI</code>. Copy the ID it shows.</td></tr>
+    <tr><td>Access denied / needs administrator</td><td>Close the window and open <strong>Terminal (Admin)</strong>, not the normal one.</td></tr>
+    <tr><td>Install stuck or failed halfway</td><td>Restart the laptop and run the same command again; winget continues safely.</td></tr>
+    <tr><td>SSMS: “A network-related … error” on connect</td><td>Check the server name is exactly <code class="i">localhost\SQLEXPRESS</code> and the service is <em>Running</em> (step 3).</td></tr>
+    <tr><td>SSMS: certificate chain not trusted</td><td>Tick <strong>Trust server certificate</strong> in the connect window.</td></tr>
+  </table>
+
+  <div class="two">
+    <div class="box y">
+      <h4>🌐 No winget? Download manually</h4>
+      <p>SQL Server Express<br><code class="i">microsoft.com/sql-server</code><br>
+      SSMS<br><code class="i">aka.ms/ssms</code><br>
+      Power BI Desktop (also in the Microsoft Store)<br><code class="i">powerbi.microsoft.com/desktop</code></p>
+    </div>
+    <div class="box g">
+      <h4>✅ Ready for Day 02 when…</h4>
+      <ul class="check">
+        <li>all three show up in <code class="i">winget list</code></li>
+        <li>the SQLEXPRESS service is Running</li>
+        <li>SSMS connects and <code class="i">SELECT @@VERSION</code> works</li>
+        <li>Power BI Desktop opens</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot"><span><b>Power BI with SQL</b> · Install guide · MD Yak Safu</span><span>Page 2 of 2</span></div>
+</section>
+
+</body>
+</html>

@@ -343,6 +343,8 @@
   .install-tip .card { padding: 14px 18px; font-size: 16px; line-height: 1.6; }
   .install-tip .card:first-child { flex: none; }
   .install-tip .card:last-child { flex: 1; }
+  .install-tip .card.pdf { flex: none; text-decoration: none; color: #fff; background: var(--blue); border-color: var(--blue); white-space: nowrap; }
+  .install-tip .card.pdf:hover { background: #1D4ED8; }
   .install-tip code { background: var(--blue-l); color: var(--blue); padding: 2px 8px; border-radius: 6px; font-size: 14px; white-space: nowrap; }
 
   /* Closing */
@@ -1022,7 +1024,8 @@
       </div>
       <div class="install-tip">
         <div class="card a fade" style="--i:6">✅ Check it worked: <code>winget list Microsoft.</code></div>
-        <div class="card a fade" style="--i:7">🌐 No winget? Download: <code>microsoft.com/sql-server</code> · <code>aka.ms/ssms</code> · <code>powerbi.microsoft.com/desktop</code></div>
+        <a class="card pdf a fade" style="--i:7" href="install-tools.pdf" download>📄 <b>Step-by-step PDF</b></a>
+        <div class="card a fade" style="--i:8">🌐 No winget? Download: <code>microsoft.com/sql-server</code> · <code>aka.ms/ssms</code> · <code>powerbi.microsoft.com/desktop</code></div>
       </div>
     </div>
   </section>
