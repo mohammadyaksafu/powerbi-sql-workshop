@@ -321,6 +321,30 @@
   .recap p { font-size: 19px; line-height: 1.4; }
   .recap p b { color: var(--blue); }
 
+  /* Install commands */
+  .install { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; }
+  .install .card { padding: 22px 22px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .install .head { display: flex; align-items: center; gap: 14px; }
+  .install .head h3 { font-size: 21px; line-height: 1.2; }
+  .install .head small { display: block; font-size: 14px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .install .card.sv { border-top: 6px solid var(--blue); }
+  .install .card.ss { border-top: 6px solid var(--teal); }
+  .install .card.pb { border-top: 6px solid var(--yellow); }
+  .install .card.ss .badge { background: var(--teal-l); }
+  .install .card.pb .badge { background: var(--yellow-l); }
+  .install .cmd { background: var(--navy); color: #E6EDF7; border-radius: 12px; padding: 14px 16px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; line-height: 1.6; }
+  .install .cmd .str { display: block; white-space: nowrap; }
+  .install .cmd .p { color: #8FA0BD; user-select: none; }
+  .install .cmd .kw { color: #60A5FA; font-weight: 700; }
+  .install .cmd .str { color: var(--yellow); }
+  .install .cmd .p { margin-right: 2px; }
+  .install p { font-size: 15px; color: var(--muted); line-height: 1.45; }
+  .install-tip { margin-top: 18px; display: flex; gap: 14px; width: 100%; }
+  .install-tip .card { padding: 14px 18px; font-size: 16px; line-height: 1.6; }
+  .install-tip .card:first-child { flex: none; }
+  .install-tip .card:last-child { flex: 1; }
+  .install-tip code { background: var(--blue-l); color: var(--blue); padding: 2px 8px; border-radius: 6px; font-size: 14px; white-space: nowrap; }
+
   /* Closing */
   .closing { flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: 50px; align-items: center; }
   .next-card { background: rgba(255,255,255,.06); border: 1px solid #2E4470; border-radius: 20px; padding: 30px; }
@@ -973,7 +997,37 @@
     </div>
   </section>
 
-  <!-- 17 · Closing -->
+  <!-- 17 · Install your tools -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Homework · before Day 02</div>
+    <h2 class="a" style="--i:1">Install your tools — one command each</h2>
+    <p class="lead a" style="--i:2">Right-click Start → <b style="color:var(--ink)">Terminal (Admin)</b>, then run these 3 commands.</p>
+    <div class="body" style="flex-direction:column;align-items:stretch;gap:0;justify-content:center">
+      <div class="install">
+        <div class="card sv a pop" style="--i:3">
+          <div class="head"><div class="badge">🗄️</div><div><h3>SQL Server 2022 Express</h3><small>The database server · free edition</small></div></div>
+          <div class="cmd"><span class="p">PS&gt; </span><span class="kw">winget install</span> -e --id <span class="str">Microsoft.SQLServer.2022.Express</span></div>
+          <p>Stores our data. During setup pick <b>Basic</b>; the server name will be <code>localhost\SQLEXPRESS</code>.</p>
+        </div>
+        <div class="card ss a pop" style="--i:4">
+          <div class="head"><div class="badge">🛠️</div><div><h3>SQL Server Management Studio</h3><small>The workbench where we write SQL</small></div></div>
+          <div class="cmd"><span class="p">PS&gt; </span><span class="kw">winget install</span> -e --id <span class="str">Microsoft.SQLServerManagementStudio.22</span></div>
+          <p>Connect to the server, run queries and see results as tables.</p>
+        </div>
+        <div class="card pb a pop" style="--i:5">
+          <div class="head"><div class="badge">📊</div><div><h3>Power BI Desktop</h3><small>Free dashboard tool</small></div></div>
+          <div class="cmd"><span class="p">PS&gt; </span><span class="kw">winget install</span> -e --id <span class="str">Microsoft.PowerBI</span></div>
+          <p>Builds the reports and dashboards from Day 05 onwards.</p>
+        </div>
+      </div>
+      <div class="install-tip">
+        <div class="card a fade" style="--i:6">✅ Check it worked: <code>winget list Microsoft.</code></div>
+        <div class="card a fade" style="--i:7">🌐 No winget? Download: <code>microsoft.com/sql-server</code> · <code>aka.ms/ssms</code> · <code>powerbi.microsoft.com/desktop</code></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18 · Closing -->
   <section class="slide dark">
     <div class="closing">
       <div>
