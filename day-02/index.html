@@ -1,0 +1,1536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 02 · SELECT and filtering — Power BI with SQL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/deck.css">
+<style>
+  /* ---------- Day 02 specific styles ---------- */
+
+  /* Show operators exactly as typed (no <> → ◇ or >= → ≥ ligatures) */
+  code, pre, .code, .sol, .mini, .tbl td.num, .null { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+
+  /* Title slide */
+  .title-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 2; }
+  .title-wrap .day-tag { display: inline-flex; align-items: center; gap: 14px; margin-top: 34px; font-size: 24px; color: #D6DEEC; }
+  .title-wrap .day-tag b { background: var(--yellow); color: var(--navy); padding: 6px 14px; border-radius: 8px; font-size: 18px; letter-spacing: .08em; }
+  .author { margin-top: 26px; font-size: 18px; color: #8FA0BD; }
+  .deco-funnel { position: absolute; right: 90px; top: 150px; width: 360px; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .deco-funnel i { display: block; height: 34px; border-radius: 10px; background: rgba(255,255,255,.1); transform-origin: center; }
+  .deco-funnel i:last-child { background: var(--yellow); }
+  .active .deco-funnel i { animation: squeeze 1s var(--ease) both; animation-delay: calc(var(--i) * 140ms + 300ms); }
+  @keyframes squeeze { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+
+  /* Roadmap */
+  .phases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; width: 100%; }
+  .phase { border-radius: 18px; padding: 22px; background: #fff; border: 1px solid var(--line); }
+  .phase h3 { font-size: 20px; }
+  .phase .days { font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 14px; }
+  .phase.sql { border-top: 6px solid var(--blue); }
+  .phase.pbi { border-top: 6px solid var(--orange); }
+  .phase.des { border-top: 6px solid var(--teal); }
+  .dayrow { display: flex; gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 16px; }
+  .dayrow b { font-size: 13px; width: 52px; flex: none; }
+  .sql .dayrow b { color: var(--blue); } .pbi .dayrow b { color: var(--orange); } .des .dayrow b { color: var(--teal); }
+  .dayrow.done { color: var(--muted); }
+  .dayrow.done::after { content: "✓"; margin-left: auto; color: var(--ok); font-weight: 800; }
+  .dayrow.now { background: var(--yellow-l); margin: 0 -12px; padding: 9px 12px; border-radius: 10px; border-top-color: transparent; font-weight: 700; }
+  .here { margin-left: auto; font-size: 11px; font-weight: 800; background: var(--yellow); color: var(--navy); padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .active .here { animation: pulse 1.8s ease-out 1.4s infinite; }
+
+  /* Agenda */
+  .agenda { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; width: 100%; }
+  .agenda .card { padding: 18px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 140px; }
+  .agenda .badge { width: 44px; height: 44px; font-size: 22px; }
+  .agenda .n { font-size: 13px; font-weight: 800; color: var(--blue); }
+  .agenda .t { font-size: 17px; font-weight: 700; line-height: 1.25; }
+  .agenda .part2 .n { color: var(--orange); }
+  .agenda .part2 .badge { background: var(--orange-l); }
+  .legend-row { display: flex; gap: 22px; margin-top: 18px; font-size: 15px; color: var(--muted); font-weight: 600; }
+  .legend-row span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; background: var(--blue); }
+  .legend-row span.o::before { background: var(--orange); }
+
+  /* Section divider */
+  .section { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .section .big-num { font-size: 200px; font-weight: 800; line-height: .9; color: transparent; -webkit-text-stroke: 2px rgba(242,200,17,.55); }
+  .section h2 { font-size: 72px; }
+  .section .topics { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+  .section .topics span { border: 1px solid #2E4470; color: #D6DEEC; padding: 10px 18px; border-radius: 999px; font-size: 18px; }
+
+  /* Tables */
+  .tbl.sm { font-size: 17px; }
+  .tbl.sm th { font-size: 14px; padding: 9px 16px; }
+  .tbl.sm td { padding: 8px 16px; }
+  .tbl.sm td.num { font-size: 16px; }
+  .tbl.xs { font-size: 15px; border-radius: 12px; }
+  .tbl.xs th { font-size: 13px; padding: 7px 12px; }
+  .tbl.xs td { padding: 5px 12px; }
+  .tbl.xs td.num { font-size: 14px; }
+  .tbl td.null, .null { color: #9AA6B8; font-style: italic; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; }
+  .tbl td.pk { background: var(--yellow-l); font-weight: 700; }
+  .tbl tr.more td { color: var(--muted); font-size: 13px; text-align: center; padding: 4px; }
+  .rcount { font-size: 13px; font-weight: 800; color: var(--ok); letter-spacing: .12em; text-transform: uppercase; }
+
+  /* Code blocks */
+  .code.sm { font-size: 19px; line-height: 1.65; padding: 34px 30px 24px; border-radius: 16px; }
+  .code.xs { font-size: 16px; line-height: 1.6; padding: 30px 24px 20px; border-radius: 14px; }
+  .code .cm { color: #7F8EA8; font-style: italic; }
+  .code .fn { color: #34D399; }
+  .code .nm { color: #FCA5A5; }
+  .code .line { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; }
+  .code .ann { font-family: "Inter", sans-serif; font-size: 15px; color: #8FA0BD; white-space: nowrap; }
+  .code .ann b { color: var(--yellow); }
+  .code pre, pre.code { font-family: inherit; white-space: pre; margin: 0; }
+  .two { display: grid; grid-template-columns: 1.15fr 1fr; gap: 36px; width: 100%; align-items: center; }
+  .two.even { grid-template-columns: 1fr 1fr; }
+  .stackv { display: flex; flex-direction: column; gap: 14px; }
+
+  /* Practice (questions + exercises) */
+  .practice { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; width: 100%; align-items: start; }
+  .practice .col { display: flex; flex-direction: column; gap: 14px; }
+  .col-h { font-size: 14px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .col-h.ex { color: var(--orange); }
+  .practice .card { padding: 18px 22px; }
+  .practice .card.exc { border-left: 5px solid var(--orange); }
+  .practice .q { font-size: 18px; font-weight: 600; line-height: 1.45; }
+  .practice .q > span:first-child { color: var(--blue); font-weight: 800; margin-right: 10px; }
+  .practice .exc .q > span:first-child { color: var(--orange); }
+  .practice .q code { background: var(--blue-l); color: var(--blue); padding: 1px 6px; border-radius: 5px; font-size: 15px; }
+  .ans { margin-top: 12px; font-size: 17px; color: #166534; font-weight: 600; padding: 9px 13px; background: #ECFDF3; border-radius: 10px; line-height: 1.4; }
+  .ans code { font-size: 15px; background: #fff; padding: 0 5px; border-radius: 4px; }
+  .sol { margin-top: 12px; background: var(--navy); color: #E6EDF7; border-radius: 10px; padding: 11px 14px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 15px; line-height: 1.55; white-space: pre; }
+  .sol .kw { color: #60A5FA; font-weight: 700; } .sol .str { color: var(--yellow); } .sol .op { color: #F472B6; } .sol .fn { color: #34D399; }
+  .sol .cm { color: #8FA0BD; font-style: italic; }
+  .hint-t { font-size: 22px; font-weight: 600; color: var(--muted); }
+
+  /* Quiz */
+  .quiz { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+  .quiz .card { padding: 22px 24px; }
+  .quiz .q { font-size: 19px; font-weight: 700; line-height: 1.4; }
+  .quiz .q > span:first-child { color: var(--blue); margin-right: 10px; }
+  .quiz .q code { background: var(--blue-l); color: var(--blue); padding: 1px 6px; border-radius: 5px; font-size: 16px; }
+
+  /* Data-type cards */
+  .types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .types .card { padding: 13px 16px; }
+  .types b { font-family: "JetBrains Mono", Consolas, monospace; color: var(--blue); font-size: 16px; }
+  .types p { font-size: 14px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .dl { display: inline-flex; align-items: center; gap: 10px; background: var(--blue); color: #fff; text-decoration: none; padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 16px; margin-top: 14px; }
+  .dl:hover { background: #1D4ED8; }
+
+  /* Rules grid */
+  .rules6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; }
+  .rules6 .card { padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .rules6 h3 { font-size: 18px; }
+  .rules6 p { font-size: 15px; color: var(--muted); line-height: 1.45; }
+  .rules6 code { display: block; background: var(--navy); color: #E6EDF7; padding: 8px 12px; border-radius: 8px; font-size: 14px; white-space: pre; }
+  .rules6 code .kw { color: #60A5FA; font-weight: 700; } .rules6 code .str { color: var(--yellow); } .rules6 code .cm { color: #8FA0BD; font-style: italic; }
+  .rules6 .wrong { color: #FCA5A5; }
+
+  /* Gotcha cards */
+  .gotchas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; width: 100%; }
+  .gotchas .card { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .gotchas h3 { font-size: 19px; }
+  .gotchas p { font-size: 15px; color: var(--muted); line-height: 1.45; }
+  .mini { background: var(--navy); color: #E6EDF7; border-radius: 10px; padding: 10px 14px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 14.5px; line-height: 1.7; white-space: pre; }
+  .mini .kw { color: #60A5FA; font-weight: 700; } .mini .str { color: var(--yellow); } .mini .op { color: #F472B6; } .mini .fn { color: #34D399; }
+  .mini .r { color: #86EFAC; } .mini .x { color: #FCA5A5; } .mini .cm { color: #8FA0BD; font-style: italic; }
+
+  /* DISTINCT */
+  .dist { display: grid; grid-template-columns: auto 80px auto 1fr; gap: 20px; width: 100%; align-items: center; }
+  .dist .arrow { font-size: 34px; color: var(--blue); text-align: center; font-weight: 800; }
+  .active .tbl tr.dup td { animation: dupOut .5s var(--ease) both; animation-delay: 1.6s; }
+  @keyframes dupOut { to { color: #C5CFDE; text-decoration: line-through; background: #F8FAFC; } }
+  .dnote { display: flex; flex-direction: column; gap: 12px; }
+  .dnote .card { padding: 14px 18px; font-size: 16px; line-height: 1.45; }
+
+  /* ORDER BY */
+  .tbl tr.g1 td { background: #FFF; } .tbl tr.g2 td { background: #F3F7FF; }
+  .tbl tr.nullrow td { background: #F8FAFC; }
+  .tbl td.sortk { font-weight: 800; color: var(--blue); }
+  .rulelist { display: flex; flex-direction: column; gap: 12px; }
+  .rulelist .card { padding: 13px 18px; font-size: 16px; line-height: 1.45; }
+  .rulelist .card b.i { color: var(--blue); margin-right: 10px; }
+  .rulelist code { background: var(--blue-l); color: var(--blue); padding: 1px 6px; border-radius: 5px; font-size: 14px; }
+
+  /* TOP */
+  .tops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; width: 100%; align-items: start; }
+  .tops .card { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .tops h3 { font-size: 19px; }
+  .tops p { font-size: 14px; color: var(--muted); line-height: 1.45; }
+  .tops .tbl { width: 100%; }
+  .tops tr.tie td { background: var(--yellow-l); font-weight: 700; }
+
+  /* Paging */
+  .pages { display: flex; gap: 10px; width: 100%; }
+  .pg { flex: 1; border: 2px dashed #C5CFDE; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .pg.on { border: 2px solid var(--blue); background: var(--blue-l); }
+  .pg small { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .1em; }
+  .pg.on small { color: var(--blue); }
+  .pg span { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; font-size: 15px; }
+  .pg .rk { color: var(--muted); font-size: 12px; margin-right: 6px; font-family: "JetBrains Mono", Consolas, monospace; }
+
+  /* WHERE sieve */
+  .active .tbl tr.drop td { animation: dropOut .6s var(--ease) both; animation-delay: calc(var(--d, 0) * 60ms + 1.6s); }
+  @keyframes dropOut { to { opacity: .22; } }
+  .active .tbl tr.keep td { animation: keepOn .6s var(--ease) 1.6s both; }
+  @keyframes keepOn { to { background: #ECFDF3; font-weight: 700; } }
+  .sieve-note { display: flex; flex-direction: column; gap: 12px; }
+  .sieve-note .card { padding: 14px 18px; font-size: 16px; line-height: 1.45; }
+
+  /* Operators table */
+  .ops { width: 100%; }
+  .ops td { white-space: normal; }
+  .ops td:first-child { font-family: "JetBrains Mono", Consolas, monospace; font-weight: 800; color: var(--blue); font-size: 19px; text-align: center; width: 130px; white-space: nowrap; font-variant-ligatures: none; }
+  .ops td code { font-size: 15px; }
+  .ops td.res { color: var(--muted); font-size: 15px; }
+  .ops td.cnt { font-weight: 800; color: var(--ok); text-align: right; }
+
+  /* Truth tables */
+  .logic { display: grid; grid-template-columns: 300px 1fr; gap: 34px; width: 100%; align-items: start; }
+  .tt { border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 15px; width: 100%; }
+  .tt th { background: var(--navy); color: #fff; padding: 7px 10px; font-size: 13px; }
+  .tt td { padding: 6px 10px; text-align: center; border-top: 1px solid var(--line); font-weight: 600; }
+  .tt td.T { color: var(--ok); } .tt td.F { color: var(--bad); }
+  .tt td.res { font-weight: 800; background: var(--bg); }
+  .tt-wrap { display: flex; flex-direction: column; gap: 14px; }
+  .lex { display: flex; flex-direction: column; gap: 12px; }
+  .lex .card { padding: 14px 18px; display: grid; grid-template-columns: 1fr 230px; gap: 16px; align-items: center; }
+  .lex .mini { font-size: 14px; }
+  .lex .out { font-size: 15px; line-height: 1.45; }
+  .lex .out b { color: var(--ok); }
+
+  /* Precedence */
+  .prec { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; }
+  .prec .card { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .prec .card.bad { border-top: 6px solid var(--bad); }
+  .prec .card.good { border-top: 6px solid var(--ok); }
+  .prec h3 { font-size: 19px; }
+  .prec .how { font-size: 15px; color: var(--muted); line-height: 1.45; }
+  .prec .how b { color: var(--ink); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { font-size: 14px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--blue-l); color: var(--blue); }
+  .chips span.w { background: #FEF2F2; color: var(--bad); }
+  .chips span.k { background: #ECFDF3; color: var(--ok); }
+
+  /* Number line (BETWEEN) */
+  .nline { position: relative; height: 150px; width: 100%; margin: 6px 0 4px; }
+  .nline .axis { position: absolute; left: 0; right: 0; top: 74px; height: 4px; background: #C5CFDE; border-radius: 2px; }
+  .nline .band { position: absolute; top: 56px; height: 40px; left: 33.33%; width: 33.34%; background: rgba(37,99,235,.12); border: 2px solid var(--blue); border-radius: 10px; transform-origin: left; }
+  .active .nline .band { animation: bandIn .8s var(--ease) 1s both; }
+  @keyframes bandIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .nline .tick { position: absolute; top: 98px; font-size: 13px; color: var(--muted); transform: translateX(-50%); font-family: "JetBrains Mono", Consolas, monospace; }
+  .nline .tick.b { color: var(--blue); font-weight: 800; top: 100px; }
+  .nline .dot { position: absolute; top: 76px; transform: translate(-50%, -50%); width: 14px; height: 14px; border-radius: 50%; background: #94A3B8; border: 2px solid #fff; z-index: 2; }
+  .nline .dot.in { background: var(--blue); }
+  .nline .lbl { position: absolute; transform: translateX(-50%); font-size: 12.5px; line-height: 1.15; text-align: center; color: var(--muted); white-space: nowrap; }
+  .nline .lbl.up { top: 14px; } .nline .lbl.dn { top: 118px; }
+  .nline .lbl.in { color: var(--blue); font-weight: 800; }
+
+  /* LIKE */
+  .wild { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 100%; }
+  .wild .card { padding: 14px 16px; }
+  .wild .sym { font-family: "JetBrains Mono", Consolas, monospace; font-size: 26px; font-weight: 800; color: var(--orange); }
+  .wild h3 { font-size: 16px; margin-top: 4px; }
+  .wild p { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .likes { width: 100%; margin-top: 16px; }
+  .likes td { white-space: normal; }
+  .likes td:first-child code { font-size: 16px; color: var(--orange); font-weight: 700; }
+  .likes td:nth-child(3) { font-weight: 800; color: var(--ok); text-align: center; }
+
+  /* NULL */
+  .nullgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; width: 100%; }
+  .nullgrid .card { padding: 18px; text-align: center; }
+  .nullgrid .big { font-size: 34px; font-weight: 800; font-family: "JetBrains Mono", Consolas, monospace; }
+  .nullgrid p { font-size: 15px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .nullgrid .card.n { border: 2px solid var(--orange); }
+  .nullgrid .card.n .big { color: var(--orange); }
+  .vs2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-top: 18px; }
+  .vs2 .card { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .vs2 .card.bad { border-top: 5px solid var(--bad); }
+  .vs2 .card.good { border-top: 5px solid var(--ok); }
+  .vs2 h3 { font-size: 17px; }
+  .tvl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .tvl .card { padding: 12px 14px; text-align: center; }
+  .tvl .v { font-weight: 800; font-size: 20px; }
+  .tvl p { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+  .sum-line { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; flex-wrap: wrap; }
+  .sum-line span { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; }
+  .sum-line span.miss { background: #FFF7ED; border-color: #FDBA74; color: var(--orange); }
+
+  /* Logical order */
+  .order { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; align-items: center; }
+  .runorder { display: flex; flex-direction: column; gap: 8px; }
+  .runorder .st { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 9px 14px; }
+  .runorder .st b { width: 30px; height: 30px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 14px; flex: none; }
+  .runorder .st code { font-weight: 700; font-size: 16px; color: var(--navy); width: 128px; flex: none; }
+  .runorder .st span { font-size: 15px; color: var(--muted); }
+  .runorder .st.hot { border-color: var(--yellow); background: var(--yellow-l); }
+  .rn { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--yellow); color: var(--navy); font-family: "Inter", sans-serif; font-size: 13px; font-weight: 800; }
+
+  /* Mistakes */
+  .mist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; }
+  .mist .card { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .mist h3 { font-size: 16px; }
+  .mist .mini { font-size: 13px; padding: 8px 12px; line-height: 1.6; }
+
+  /* Challenge */
+  .chal { display: grid; grid-template-columns: 380px 1fr; gap: 28px; width: 100%; align-items: start; }
+  .tasks { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tasks .card { padding: 12px 14px; border-left: 5px solid var(--orange); }
+  .tasks .q { font-size: 15.5px; font-weight: 600; line-height: 1.35; }
+  .tasks .q > span:first-child { color: var(--orange); font-weight: 800; margin-right: 8px; }
+  .tasks .sol { font-size: 12.5px; padding: 8px 10px; margin-top: 8px; }
+
+  /* Recap */
+  .recap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; width: 100%; }
+  .recap .card { display: flex; flex-direction: column; gap: 12px; padding: 22px; }
+  .recap p { font-size: 17px; line-height: 1.45; }
+  .recap p b { color: var(--blue); }
+  .recap code { font-size: 14px; background: var(--blue-l); color: var(--blue); padding: 1px 6px; border-radius: 5px; }
+
+  /* Homework */
+  .hw { display: grid; grid-template-columns: 1fr 1.25fr; gap: 30px; width: 100%; align-items: start; }
+  .hw ol { list-style: none; counter-reset: h; display: flex; flex-direction: column; gap: 10px; }
+  .hw ol li { counter-increment: h; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 11px 16px 11px 54px; position: relative; font-size: 16px; line-height: 1.4; }
+  .hw ol li::before { content: "H" counter(h); position: absolute; left: 14px; top: 11px; font-weight: 800; color: var(--orange); }
+  .hw .card { padding: 20px 22px; }
+  .hw .card p { font-size: 16px; color: var(--muted); line-height: 1.5; margin-top: 8px; }
+  .hw .card ul { margin-top: 10px; padding-left: 20px; font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+  /* Closing */
+  .closing { flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: 50px; align-items: center; }
+  .next-card { background: rgba(255,255,255,.06); border: 1px solid #2E4470; border-radius: 20px; padding: 30px; }
+  .next-card h3 { font-size: 26px; margin-top: 10px; }
+  .next-card ul { list-style: none; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .next-card li { color: #D6DEEC; font-size: 19px; display: flex; gap: 12px; }
+  .next-card li::before { content: "→"; color: var(--yellow); font-weight: 800; }
+  .floaty { animation: float 4s ease-in-out infinite; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="deck">
+<div class="stage" data-label="Day 02">
+
+  <!-- 1 · Title -->
+  <section class="slide dark">
+    <div class="deco-funnel" aria-hidden="true">
+      <i style="--i:0;width:100%"></i><i style="--i:1;width:84%"></i><i style="--i:2;width:68%"></i>
+      <i style="--i:3;width:52%"></i><i style="--i:4;width:36%"></i><i style="--i:5;width:20%"></i>
+    </div>
+    <div class="title-wrap">
+      <div class="kicker a" style="--i:0">Leading University · Workshop</div>
+      <h1 class="a" style="--i:1;margin-top:18px">Power BI<br><span class="hl">with SQL</span></h1>
+      <div class="day-tag a" style="--i:3"><b>DAY 02</b> SELECT and filtering</div>
+      <div class="author a" style="--i:4">— MD Yak Safu</div>
+    </div>
+  </section>
+
+  <!-- 2 · Roadmap -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">The journey</div>
+    <h2 class="a" style="--i:1">Day 02: we start writing real SQL</h2>
+    <div class="body">
+      <div class="phases">
+        <div class="phase sql a" style="--i:2">
+          <h3>SQL foundations</h3><div class="days">Days 1–4</div>
+          <div class="dayrow done"><b>DAY 01</b> Why data &amp; the two tools</div>
+          <div class="dayrow now"><b>DAY 02</b> SELECT &amp; filtering <span class="here">YOU ARE HERE</span></div>
+          <div class="dayrow"><b>DAY 03</b> Aggregation &amp; functions</div>
+          <div class="dayrow"><b>DAY 04</b> Joins, subqueries &amp; views</div>
+        </div>
+        <div class="phase pbi a" style="--i:3">
+          <h3>Power BI build</h3><div class="days">Days 5–7</div>
+          <div class="dayrow"><b>DAY 05</b> Connecting &amp; cleaning</div>
+          <div class="dayrow"><b>DAY 06</b> Data modelling</div>
+          <div class="dayrow"><b>DAY 07</b> DAX basics</div>
+        </div>
+        <div class="phase des a" style="--i:4">
+          <h3>Design &amp; insight</h3><div class="days">Days 8–10</div>
+          <div class="dayrow"><b>DAY 08</b> Dashboard design</div>
+          <div class="dayrow"><b>DAY 09</b> Build on a given problem</div>
+          <div class="dayrow"><b>DAY 10</b> Analysis in Power BI</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Day 01 recall -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Warm-up · remember Day 01?</div>
+    <h2 class="a" style="--i:1">Four quick questions <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="quiz">
+        <div class="card a" style="--i:2"><div class="q"><span>Q1</span>What makes a column a good primary key?</div><div class="ans frag">Unique for every row and never empty (no NULL)</div></div>
+        <div class="card a" style="--i:3"><div class="q"><span>Q2</span>What does a foreign key do?</div><div class="ans frag">Points to the primary key of another table and links the two</div></div>
+        <div class="card a" style="--i:4"><div class="q"><span>Q3</span>Which DBMS and which tool do we use in this course?</div><div class="ans frag">SQL Server Express (the DBMS) + SSMS (where we write SQL)</div></div>
+        <div class="card a" style="--i:5"><div class="q"><span>Q4</span>The SQL from Day 01 had three parts. Which three?</div><div class="ans frag"><code>SELECT</code> which columns · <code>FROM</code> which table · <code>WHERE</code> which rows. Today we go deep on all three.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · Today's plan -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Today's plan</div>
+    <h2 class="a" style="--i:1">12 topics: get the columns, then filter the rows</h2>
+    <div class="body" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
+      <div class="agenda">
+        <div class="card a pop" style="--i:2"><div class="badge">🧰</div><div class="n">01</div><div class="t">Practice database</div></div>
+        <div class="card a pop" style="--i:3"><div class="badge">📋</div><div class="n">02</div><div class="t">SELECT &amp; FROM</div></div>
+        <div class="card a pop" style="--i:4"><div class="badge">🏷️</div><div class="n">03</div><div class="t">Aliases &amp; calculations</div></div>
+        <div class="card a pop" style="--i:5"><div class="badge">🧹</div><div class="n">04</div><div class="t">DISTINCT</div></div>
+        <div class="card a pop" style="--i:6"><div class="badge">↕️</div><div class="n">05</div><div class="t">ORDER BY</div></div>
+        <div class="card a pop" style="--i:7"><div class="badge">🥇</div><div class="n">06</div><div class="t">TOP &amp; paging</div></div>
+        <div class="card part2 a pop" style="--i:8"><div class="badge">🔍</div><div class="n">07</div><div class="t">WHERE &amp; comparisons</div></div>
+        <div class="card part2 a pop" style="--i:9"><div class="badge">🔀</div><div class="n">08</div><div class="t">AND / OR / NOT</div></div>
+        <div class="card part2 a pop" style="--i:10"><div class="badge">📦</div><div class="n">09</div><div class="t">IN</div></div>
+        <div class="card part2 a pop" style="--i:11"><div class="badge">📏</div><div class="n">10</div><div class="t">BETWEEN</div></div>
+        <div class="card part2 a pop" style="--i:12"><div class="badge">🔤</div><div class="n">11</div><div class="t">LIKE patterns</div></div>
+        <div class="card part2 a pop" style="--i:13"><div class="badge">❔</div><div class="n">12</div><div class="t">NULL</div></div>
+      </div>
+      <div class="legend-row a fade" style="--i:14"><span>Part 1 · Reading columns</span><span class="o">Part 2 · Filtering rows</span><span style="margin-left:auto">Every topic ends with questions ❓ and an exercise 🛠️</span></div>
+    </div>
+  </section>
+
+  <!-- 5 · Part 1 divider -->
+  <section class="slide dark">
+    <div class="section">
+      <div class="big-num a fade" style="--i:0">01</div>
+      <div class="kicker a" style="--i:1">Part one</div>
+      <h2 class="a" style="--i:2">Reading columns</h2>
+      <div class="topics">
+        <span class="a" style="--i:3">Practice database</span><span class="a" style="--i:4">SELECT &amp; FROM</span>
+        <span class="a" style="--i:5">Aliases &amp; calculations</span><span class="a" style="--i:6">DISTINCT</span>
+        <span class="a" style="--i:7">ORDER BY</span><span class="a" style="--i:8">TOP &amp; paging</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · 01 Practice table -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Practice database</div>
+    <h2 class="a" style="--i:1">Meet today's table: <span class="blue">Students</span></h2>
+    <div class="body" style="flex-direction:column;align-items:flex-start;justify-content:center;gap:12px">
+      <table class="tbl xs a" style="--i:2">
+        <tr><th>student_id <span class="key">PK</span></th><th>name</th><th>department</th><th>city</th><th>cgpa</th><th>credits</th><th>admission_date</th><th>email</th></tr>
+        <tr><td class="num pk">101</td><td>Rahim</td><td>SWE</td><td>Sylhet</td><td class="num">3.75</td><td class="num">120</td><td class="num">2022-01-10</td><td>rahim@lu.ac.bd</td></tr>
+        <tr><td class="num pk">102</td><td>Karim</td><td>CSE</td><td>Dhaka</td><td class="num">3.60</td><td class="num">96</td><td class="num">2022-05-15</td><td>karim@lu.ac.bd</td></tr>
+        <tr><td class="num pk">103</td><td>Nusrat</td><td>SWE</td><td>Sylhet</td><td class="num">3.90</td><td class="num">132</td><td class="num">2021-09-01</td><td>nusrat@lu.ac.bd</td></tr>
+        <tr><td class="num pk">104</td><td>Tania</td><td>BBA</td><td>Chattogram</td><td class="num">3.20</td><td class="num">84</td><td class="num">2023-01-12</td><td class="null">NULL</td></tr>
+        <tr><td class="num pk">105</td><td>Sakib</td><td>CSE</td><td>Sylhet</td><td class="num">2.85</td><td class="num">60</td><td class="num">2023-05-20</td><td>sakib@lu.ac.bd</td></tr>
+        <tr><td class="num pk">106</td><td>Farhana</td><td>EEE</td><td>Dhaka</td><td class="num">3.45</td><td class="num">110</td><td class="num">2022-01-10</td><td class="null">NULL</td></tr>
+        <tr><td class="num pk">107</td><td>Nabil</td><td>SWE</td><td>Khulna</td><td class="num">3.10</td><td class="num">72</td><td class="num">2023-09-05</td><td>nabil@lu.ac.bd</td></tr>
+        <tr><td class="num pk">108</td><td>Sumaiya</td><td>CSE</td><td>Sylhet</td><td class="num">3.98</td><td class="num">140</td><td class="num">2021-01-15</td><td>sumaiya@lu.ac.bd</td></tr>
+        <tr><td class="num pk">109</td><td>Arif</td><td>BBA</td><td>Rajshahi</td><td class="num">2.60</td><td class="num">45</td><td class="num">2024-01-08</td><td class="null">NULL</td></tr>
+        <tr><td class="num pk">110</td><td>Mim</td><td>EEE</td><td>Sylhet</td><td class="num">3.55</td><td class="num">100</td><td class="num">2022-09-01</td><td>mim@lu.ac.bd</td></tr>
+        <tr><td class="num pk">111</td><td>Shafin</td><td>CSE</td><td>Chattogram</td><td class="num">3.30</td><td class="num">90</td><td class="num">2022-09-01</td><td>shafin@lu.ac.bd</td></tr>
+        <tr><td class="num pk">112</td><td>Riya</td><td>SWE</td><td>Dhaka</td><td class="null">NULL</td><td class="num">0</td><td class="num">2024-09-02</td><td>riya@lu.ac.bd</td></tr>
+      </table>
+      <div class="a fade" style="--i:4;font-size:16px;color:var(--muted)">12 students · 4 departments · 5 cities · <span class="null">NULL</span> = value missing. Keep this slide in mind: every result today comes from these 12 rows.</div>
+    </div>
+  </section>
+
+  <!-- 7 · 01 Setup script -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Practice database</div>
+    <h2 class="a" style="--i:1">Build it yourself in SSMS: one script, F5</h2>
+    <div class="body">
+      <div class="two">
+        <div class="code xs a left" style="--i:2">
+          <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">CREATE DATABASE</span> LU_Workshop;
+<span class="kw">USE</span> LU_Workshop;
+
+<span class="kw">CREATE TABLE</span> Students (
+  student_id     <span class="fn">INT</span>           <span class="kw">PRIMARY KEY</span>,
+  name           <span class="fn">NVARCHAR</span>(50)  <span class="kw">NOT NULL</span>,
+  department     <span class="fn">NVARCHAR</span>(10)  <span class="kw">NOT NULL</span>,
+  city           <span class="fn">NVARCHAR</span>(30)  <span class="kw">NOT NULL</span>,
+  cgpa           <span class="fn">DECIMAL</span>(3,2)  <span class="kw">NULL</span>,
+  credits        <span class="fn">INT</span>           <span class="kw">NOT NULL</span>,
+  admission_date <span class="fn">DATE</span>          <span class="kw">NOT NULL</span>,
+  email          <span class="fn">NVARCHAR</span>(100) <span class="kw">NULL</span>
+);
+
+<span class="kw">INSERT INTO</span> Students <span class="kw">VALUES</span>
+(101, <span class="str">'Rahim'</span>, <span class="str">'SWE'</span>, <span class="str">'Sylhet'</span>, 3.75, 120,
+ <span class="str">'2022-01-10'</span>, <span class="str">'rahim@lu.ac.bd'</span>), <span class="cm">-- … 11 more</span></pre>
+        </div>
+        <div>
+          <div class="types">
+            <div class="card a right" style="--i:3"><b>INT</b><p>Whole numbers: 101, 120</p></div>
+            <div class="card a right" style="--i:4"><b>NVARCHAR(50)</b><p>Text up to 50 characters (Bangla OK)</p></div>
+            <div class="card a right" style="--i:5"><b>DECIMAL(3,2)</b><p>3 digits, 2 after the point: 3.75</p></div>
+            <div class="card a right" style="--i:6"><b>DATE</b><p>Written <code>'YYYY-MM-DD'</code></p></div>
+            <div class="card a right" style="--i:7"><b>NOT NULL</b><p>Value is required</p></div>
+            <div class="card a right" style="--i:8"><b>NULL</b><p>Value may be missing</p></div>
+          </div>
+          <a class="dl a fade" style="--i:9" href="day02_practice.sql" download>⬇ Download day02_practice.sql</a>
+          <p class="a fade" style="--i:10;font-size:14px;color:var(--muted);margin-top:10px">Contains the full setup, every slide example, all exercise solutions and the homework answers.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · 01 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">01</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">Practice database: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>Why is <code>cgpa</code> a DECIMAL and not text?</div><div class="ans frag">So SQL can sort, compare and average it. As text, '10' would sort before '9'.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>Riya's CGPA is <code>NULL</code>. Does that mean 0?</div><div class="ans frag">No. NULL means <b>unknown</b>: she is a new student with no result yet.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>Run PART A of the script. What message proves the rows went in?</div><div class="sol frag"><span class="cm">-- Messages tab:</span>
+(12 rows affected)   <span class="cm">-- Students</span>
+(13 rows affected)   <span class="cm">-- Products</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>Open a new query window. Which line must run first so SQL uses our database?</div><div class="sol frag"><span class="kw">USE</span> LU_Workshop;  <span class="cm">-- or pick it in the toolbar dropdown</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · 02 SELECT anatomy -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">02</span> SELECT &amp; FROM</div>
+    <h2 class="a" style="--i:1">SELECT picks columns. FROM picks the table.</h2>
+    <div class="body">
+      <div class="two">
+        <div class="stackv">
+          <div class="code sm a" style="--i:2">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="line a fade" style="--i:4"><span><span class="kw">SELECT</span> name, department, cgpa</span><span class="ann">← <b>which columns</b></span></div>
+            <div class="line a fade" style="--i:6"><span><span class="kw">FROM</span>   Students;</span><span class="ann">← <b>which table</b></span></div>
+          </div>
+          <div class="code sm a" style="--i:8">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="line"><span><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> Students;</span><span class="ann">← <b>*</b> = every column</span></div>
+          </div>
+        </div>
+        <div class="tbl-wrap a right" style="--i:10">
+          <div class="rcount">✓ Result · 12 rows · 3 columns</div>
+          <table class="tbl sm">
+            <tr><th>name</th><th>department</th><th>cgpa</th></tr>
+            <tr><td>Rahim</td><td>SWE</td><td class="num">3.75</td></tr>
+            <tr><td>Karim</td><td>CSE</td><td class="num">3.60</td></tr>
+            <tr><td>Nusrat</td><td>SWE</td><td class="num">3.90</td></tr>
+            <tr><td>Tania</td><td>BBA</td><td class="num">3.20</td></tr>
+            <tr><td>Sakib</td><td>CSE</td><td class="num">2.85</td></tr>
+            <tr class="more"><td colspan="3">⋮ 7 more rows</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · 02 Rules of writing SQL -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">02</span> SELECT &amp; FROM</div>
+    <h2 class="a" style="--i:1">Six rules for writing SQL</h2>
+    <div class="body">
+      <div class="rules6">
+        <div class="card a pop" style="--i:2"><h3>🔠 Case doesn't matter</h3><p><code style="display:inline;padding:1px 6px">select</code> = <code style="display:inline;padding:1px 6px">SELECT</code>. Write keywords in CAPITALS so they stand out.</p></div>
+        <div class="card a pop" style="--i:3"><h3>➖ Commas between columns</h3><code><span class="kw">SELECT</span> name, city<span class="wrong">,</span>  <span class="cm">-- ✗ extra</span>
+<span class="kw">FROM</span> Students;</code><p>No comma after the last column.</p></div>
+        <div class="card a pop" style="--i:4"><h3>⏹️ End with a semicolon</h3><p><code style="display:inline;padding:1px 6px">;</code> marks where one statement ends. Good habit, required in some places.</p></div>
+        <div class="card a pop" style="--i:5"><h3>💬 Comments</h3><code><span class="cm">-- one line</span>
+<span class="cm">/* many
+   lines */</span></code><p>SQL ignores them. Use them to explain your query.</p></div>
+        <div class="card a pop" style="--i:6"><h3>🧱 Names with spaces</h3><code><span class="kw">SELECT</span> [Student Name]</code><p>Wrap unusual names in square brackets.</p></div>
+        <div class="card a pop" style="--i:7"><h3>⭐ SELECT * : explore only</h3><p>Fine to peek at a table. In reports, list the columns: faster, clearer, and safe if the table changes.</p></div>
+      </div>
+    </div>
+    <div class="quote a" style="--i:9;margin-top:16px;text-align:center;font-size:19px;font-weight:600">Bonus: <code style="background:var(--yellow-l);padding:2px 8px;border-radius:6px">SELECT 2 + 3 AS answer;</code> works with no table. SQL is also a calculator.</div>
+  </section>
+
+  <!-- 11 · 02 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">02</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">SELECT &amp; FROM: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>Is <code>select NAME from students</code> the same as <code>SELECT name FROM Students</code>?</div><div class="ans frag">Yes. Keywords and (by default) names are not case-sensitive in SQL Server.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>Why avoid <code>SELECT *</code> in a Power BI report query?</div><div class="ans frag">It brings columns you don't need (slower, bigger model) and changes if someone adds a column.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>Show only the name and email of every student.</div><div class="sol frag"><span class="kw">SELECT</span> name, email
+<span class="kw">FROM</span> Students;          <span class="cm">-- 12 rows</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>Show the city first, then the name.</div><div class="sol frag"><span class="kw">SELECT</span> city, name
+<span class="kw">FROM</span> Students;          <span class="cm">-- you choose the order</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · 03 Aliases & calculated columns -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">03</span> Aliases &amp; calculations</div>
+    <h2 class="a" style="--i:1">AS renames a column. Math makes a new one.</h2>
+    <div class="body">
+      <div class="two" style="grid-template-columns:1.1fr 1fr">
+        <div class="code xs a left" style="--i:2">
+          <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">SELECT</span> name                <span class="kw">AS</span> [Student],
+       credits,
+       144 <span class="op">-</span> credits       <span class="kw">AS</span> [Credits Left],
+       name <span class="op">+</span> <span class="str">' ('</span> <span class="op">+</span> department <span class="op">+</span> <span class="str">')'</span>
+                           <span class="kw">AS</span> Label
+<span class="kw">FROM</span> Students;</pre>
+          <div style="margin-top:14px;font-family:Inter,sans-serif;font-size:14px;color:#B8C4D9;line-height:1.6">
+            <span style="color:var(--yellow);font-weight:700">AS</span> changes the name in the <b style="color:#fff">result only</b>. The table is not changed.<br>
+            Math: <span style="color:#F472B6">+ − * / %</span> · join text with <span style="color:#F472B6">+</span> or <span style="color:#34D399">CONCAT()</span>
+          </div>
+        </div>
+        <div class="tbl-wrap a right" style="--i:5">
+          <div class="rcount">✓ Result · 12 rows (first 4)</div>
+          <table class="tbl sm">
+            <tr><th>Student</th><th>credits</th><th>Credits Left</th><th>Label</th></tr>
+            <tr><td>Rahim</td><td class="num">120</td><td class="num"><b>24</b></td><td>Rahim (SWE)</td></tr>
+            <tr><td>Karim</td><td class="num">96</td><td class="num"><b>48</b></td><td>Karim (CSE)</td></tr>
+            <tr><td>Nusrat</td><td class="num">132</td><td class="num"><b>12</b></td><td>Nusrat (SWE)</td></tr>
+            <tr><td>Tania</td><td class="num">84</td><td class="num"><b>60</b></td><td>Tania (BBA)</td></tr>
+            <tr class="more"><td colspan="4">⋮ 8 more rows</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · 03 Calculation gotchas -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">03</span> Aliases &amp; calculations</div>
+    <h2 class="a" style="--i:1">Three surprises when you calculate</h2>
+    <div class="body">
+      <div class="gotchas">
+        <div class="card a pop" style="--i:2">
+          <h3>➗ Whole ÷ whole = whole</h3>
+          <div class="mini"><span class="kw">SELECT</span> 7 <span class="op">/</span> 2;    <span class="x">→ 3</span>
+<span class="kw">SELECT</span> 7 <span class="op">/</span> 2.0;  <span class="r">→ 3.5</span>
+<span class="kw">SELECT</span> 7 <span class="op">%</span> 2;    <span class="r">→ 1</span>  <span class="cm">-- remainder</span></div>
+          <p>INT ÷ INT cuts off the decimals. Make one side a decimal to keep them.</p>
+        </div>
+        <div class="card a pop" style="--i:3">
+          <h3>🕳️ NULL swallows everything</h3>
+          <div class="mini"><span class="str">'Mail: '</span> <span class="op">+</span> <span class="kw">NULL</span>         <span class="x">→ NULL</span>
+<span class="fn">CONCAT</span>(<span class="str">'Mail: '</span>, <span class="kw">NULL</span>) <span class="r">→ 'Mail: '</span>
+120 <span class="op">+</span> <span class="kw">NULL</span>              <span class="x">→ NULL</span></div>
+          <p>Any math or <code>+</code> with NULL gives NULL. <b>CONCAT</b> treats NULL as empty text.</p>
+        </div>
+        <div class="card a pop" style="--i:4">
+          <h3>🏷️ Aliases have a lifetime</h3>
+          <div class="mini"><span class="kw">ORDER BY</span> [Credits Left]  <span class="r">✓</span>
+<span class="kw">WHERE</span> [Credits Left] <span class="op">&gt;</span> 50 <span class="x">✗</span>
+<span class="kw">WHERE</span> 144 <span class="op">-</span> credits <span class="op">&gt;</span> 50 <span class="r">✓</span></div>
+          <p>WHERE runs <b>before</b> SELECT, so it can't see the alias yet. More on this at the end.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · 03 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">03</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">Aliases &amp; calculations: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>After <code>SELECT name AS Student</code>, is the column in the table renamed?</div><div class="ans frag">No. Only the result's heading changes; the table keeps <code>name</code>.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>What does <code>SELECT 10 / 4;</code> return? And <code>10 / 4.0</code>?</div><div class="ans frag"><code>2</code> (whole-number division) and <code>2.500000</code></div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>Name and the credits still needed to graduate (144 total) as <code>[Credits Left]</code>.</div><div class="sol frag"><span class="kw">SELECT</span> name, 144 <span class="op">-</span> credits <span class="kw">AS</span> [Credits Left]
+<span class="kw">FROM</span> Students;     <span class="cm">-- Rahim → 24</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>One column called <code>Label</code> that reads like <code>Rahim - SWE</code>.</div><div class="sol frag"><span class="kw">SELECT</span> name <span class="op">+</span> <span class="str">' - '</span> <span class="op">+</span> department <span class="kw">AS</span> Label
+<span class="kw">FROM</span> Students;</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 · 04 DISTINCT -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">04</span> DISTINCT</div>
+    <h2 class="a" style="--i:1">DISTINCT removes repeated rows</h2>
+    <div class="body">
+      <div class="dist">
+        <div class="tbl-wrap a left" style="--i:2">
+          <div class="tbl-title">SELECT department</div>
+          <table class="tbl xs">
+            <tr><th>department</th></tr>
+            <tr><td>SWE</td></tr><tr><td>CSE</td></tr><tr class="dup"><td>SWE</td></tr><tr><td>BBA</td></tr>
+            <tr class="dup"><td>CSE</td></tr><tr><td>EEE</td></tr><tr class="dup"><td>SWE</td></tr><tr class="dup"><td>CSE</td></tr>
+            <tr class="dup"><td>BBA</td></tr><tr class="dup"><td>EEE</td></tr><tr class="dup"><td>CSE</td></tr><tr class="dup"><td>SWE</td></tr>
+          </table>
+        </div>
+        <div class="arrow a fade" style="--i:5">➜</div>
+        <div class="tbl-wrap a right" style="--i:6">
+          <div class="tbl-title">SELECT DISTINCT department</div>
+          <table class="tbl sm">
+            <tr><th>department</th></tr>
+            <tr><td>BBA</td></tr><tr><td>CSE</td></tr><tr><td>EEE</td></tr><tr><td>SWE</td></tr>
+          </table>
+          <div class="rcount">12 rows → 4 rows</div>
+        </div>
+        <div class="dnote">
+          <div class="card a right" style="--i:8">📌 <b>DISTINCT</b> goes right after SELECT, once, and applies to the <b>whole row</b>.</div>
+          <div class="card a right" style="--i:9"><code>SELECT DISTINCT department, city</code><br>→ <b>10 rows</b>: each unique <i>pair</i> (SWE + Sylhet appears once, SWE + Dhaka is a different pair).</div>
+          <div class="card a right" style="--i:10">💡 Use it to answer “<b>which</b> values exist?”: which cities do our students come from?</div>
+          <div class="card a right" style="--i:11">⚠️ DISTINCT does not count. “<b>How many</b> per city?” is Day 03 (GROUP BY).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 · 04 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">04</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">DISTINCT: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>How many rows does <code>SELECT DISTINCT city FROM Students</code> return?</div><div class="ans frag">5: Sylhet, Dhaka, Chattogram, Khulna, Rajshahi</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>Does <code>SELECT DISTINCT name, city</code> return fewer than 12 rows?</div><div class="ans frag">No, 12. Every student has a different name, so every pair is already unique.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>List every department once.</div><div class="sol frag"><span class="kw">SELECT DISTINCT</span> department
+<span class="kw">FROM</span> Students;     <span class="cm">-- BBA, CSE, EEE, SWE</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>List every admission date once. How many are there?</div><div class="sol frag"><span class="kw">SELECT DISTINCT</span> admission_date
+<span class="kw">FROM</span> Students;     <span class="cm">-- 10 (two dates are shared)</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 17 · 05 ORDER BY single -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">05</span> ORDER BY</div>
+    <h2 class="a" style="--i:1">ORDER BY sorts the result</h2>
+    <div class="body">
+      <div class="two" style="grid-template-columns:1fr 1fr">
+        <div class="stackv">
+          <div class="code sm a" style="--i:2">
+            <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">SELECT</span>   name, cgpa
+<span class="kw">FROM</span>     Students
+<span class="kw">ORDER BY</span> cgpa <span class="kw">DESC</span>;</pre>
+          </div>
+          <div class="rulelist">
+            <div class="card a left" style="--i:4"><b class="i">ASC</b> small → big, A → Z, old → new. <b>Default</b>: you can leave it out.</div>
+            <div class="card a left" style="--i:5"><b class="i">DESC</b> big → small, Z → A, new → old.</div>
+            <div class="card a left" style="--i:6"><b class="i">NULL</b> counts as the smallest value: first in ASC, last in DESC.</div>
+            <div class="card a left" style="--i:7"><b class="i">⚠️</b> No ORDER BY = <b>no guaranteed order</b>. Never trust “it looked sorted”.</div>
+          </div>
+        </div>
+        <div class="tbl-wrap a right" style="--i:3">
+          <div class="rcount">✓ Result · 12 rows, best first</div>
+          <table class="tbl xs">
+            <tr><th>#</th><th>name</th><th>cgpa ↓</th></tr>
+            <tr><td class="num">1</td><td>Sumaiya</td><td class="num sortk">3.98</td></tr>
+            <tr><td class="num">2</td><td>Nusrat</td><td class="num sortk">3.90</td></tr>
+            <tr><td class="num">3</td><td>Rahim</td><td class="num sortk">3.75</td></tr>
+            <tr><td class="num">4</td><td>Karim</td><td class="num sortk">3.60</td></tr>
+            <tr><td class="num">5</td><td>Mim</td><td class="num sortk">3.55</td></tr>
+            <tr><td class="num">6</td><td>Farhana</td><td class="num sortk">3.45</td></tr>
+            <tr><td class="num">7</td><td>Shafin</td><td class="num sortk">3.30</td></tr>
+            <tr><td class="num">8</td><td>Tania</td><td class="num sortk">3.20</td></tr>
+            <tr><td class="num">9</td><td>Nabil</td><td class="num sortk">3.10</td></tr>
+            <tr><td class="num">10</td><td>Sakib</td><td class="num sortk">2.85</td></tr>
+            <tr><td class="num">11</td><td>Arif</td><td class="num sortk">2.60</td></tr>
+            <tr class="nullrow"><td class="num">12</td><td>Riya</td><td class="null">NULL</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18 · 05 ORDER BY multiple -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">05</span> ORDER BY</div>
+    <h2 class="a" style="--i:1">Sort by two columns: the second breaks ties</h2>
+    <div class="body">
+      <div class="two" style="grid-template-columns:1fr 1fr">
+        <div class="stackv">
+          <div class="code sm a" style="--i:2">
+            <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">SELECT</span>   name, department, cgpa
+<span class="kw">FROM</span>     Students
+<span class="kw">ORDER BY</span> department <span class="kw">ASC</span>,  <span class="cm">-- 1st</span>
+         cgpa <span class="kw">DESC</span>;       <span class="cm">-- 2nd</span></pre>
+          </div>
+          <div class="rulelist">
+            <div class="card a left" style="--i:4"><b class="i">1</b> First sort by department A → Z.</div>
+            <div class="card a left" style="--i:5"><b class="i">2</b> <i>Inside</i> each department, sort by CGPA high → low.</div>
+            <div class="card a left" style="--i:6"><b class="i">+</b> You can sort by an alias, e.g. <code>ORDER BY [Credits Left]</code>, or by a column you did not select.</div>
+          </div>
+        </div>
+        <div class="tbl-wrap a right" style="--i:3">
+          <div class="rcount">✓ Result · 12 rows</div>
+          <table class="tbl xs">
+            <tr><th>name</th><th>department ↑</th><th>cgpa ↓</th></tr>
+            <tr class="g1"><td>Tania</td><td class="sortk">BBA</td><td class="num">3.20</td></tr>
+            <tr class="g1"><td>Arif</td><td class="sortk">BBA</td><td class="num">2.60</td></tr>
+            <tr class="g2"><td>Sumaiya</td><td class="sortk">CSE</td><td class="num">3.98</td></tr>
+            <tr class="g2"><td>Karim</td><td class="sortk">CSE</td><td class="num">3.60</td></tr>
+            <tr class="g2"><td>Shafin</td><td class="sortk">CSE</td><td class="num">3.30</td></tr>
+            <tr class="g2"><td>Sakib</td><td class="sortk">CSE</td><td class="num">2.85</td></tr>
+            <tr class="g1"><td>Mim</td><td class="sortk">EEE</td><td class="num">3.55</td></tr>
+            <tr class="g1"><td>Farhana</td><td class="sortk">EEE</td><td class="num">3.45</td></tr>
+            <tr class="g2"><td>Nusrat</td><td class="sortk">SWE</td><td class="num">3.90</td></tr>
+            <tr class="g2"><td>Rahim</td><td class="sortk">SWE</td><td class="num">3.75</td></tr>
+            <tr class="g2"><td>Nabil</td><td class="sortk">SWE</td><td class="num">3.10</td></tr>
+            <tr class="g2"><td>Riya</td><td class="sortk">SWE</td><td class="null">NULL</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19 · 05 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">05</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">ORDER BY: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>In <code>ORDER BY cgpa</code> (no ASC/DESC), who comes first?</div><div class="ans frag">Riya. Default is ASC, and NULL sorts as the smallest. Then Arif (2.60).</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>What's the difference between <code>ORDER BY city, name</code> and <code>ORDER BY name, city</code>?</div><div class="ans frag">The first groups by city and sorts names inside each city; the second is just A→Z by name.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>All student names A → Z.</div><div class="sol frag"><span class="kw">SELECT</span> name <span class="kw">FROM</span> Students
+<span class="kw">ORDER BY</span> name;     <span class="cm">-- Arif … Tania</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>Name, city, credits: city A → Z, then credits high → low.</div><div class="sol frag"><span class="kw">SELECT</span> name, city, credits <span class="kw">FROM</span> Students
+<span class="kw">ORDER BY</span> city, credits <span class="kw">DESC</span>;  <span class="cm">-- Shafin first</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 20 · 06 TOP -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">06</span> TOP &amp; paging</div>
+    <h2 class="a" style="--i:1">TOP keeps only the first rows</h2>
+    <div class="body">
+      <div class="tops">
+        <div class="card a pop" style="--i:2">
+          <h3>TOP n</h3>
+          <div class="mini"><span class="kw">SELECT TOP</span> 3 name, cgpa
+<span class="kw">FROM</span> Students
+<span class="kw">ORDER BY</span> cgpa <span class="kw">DESC</span>;</div>
+          <table class="tbl xs"><tr><th>name</th><th>cgpa</th></tr><tr><td>Sumaiya</td><td class="num">3.98</td></tr><tr><td>Nusrat</td><td class="num">3.90</td></tr><tr><td>Rahim</td><td class="num">3.75</td></tr></table>
+          <p>“Top 3 students”: always pair TOP with ORDER BY.</p>
+        </div>
+        <div class="card a pop" style="--i:3">
+          <h3>TOP n PERCENT</h3>
+          <div class="mini"><span class="kw">SELECT TOP</span> 25 <span class="kw">PERCENT</span> name, cgpa
+<span class="kw">FROM</span> Students
+<span class="kw">ORDER BY</span> cgpa <span class="kw">DESC</span>;</div>
+          <table class="tbl xs"><tr><th>name</th><th>cgpa</th></tr><tr><td>Sumaiya</td><td class="num">3.98</td></tr><tr><td>Nusrat</td><td class="num">3.90</td></tr><tr><td>Rahim</td><td class="num">3.75</td></tr></table>
+          <p>25% of 12 rows = 3 rows. Fractions round <b>up</b>.</p>
+        </div>
+        <div class="card a pop" style="--i:4">
+          <h3>TOP n WITH TIES</h3>
+          <div class="mini"><span class="kw">SELECT TOP</span> 3 <span class="kw">WITH TIES</span>
+       name, admission_date
+<span class="kw">FROM</span> Students <span class="kw">ORDER BY</span> admission_date;</div>
+          <table class="tbl xs"><tr><th>name</th><th>admission_date</th></tr><tr><td>Sumaiya</td><td class="num">2021-01-15</td></tr><tr><td>Nusrat</td><td class="num">2021-09-01</td></tr><tr class="tie"><td>Rahim</td><td class="num">2022-01-10</td></tr><tr class="tie"><td>Farhana</td><td class="num">2022-01-10</td></tr></table>
+          <p>Asked for 3, got <b>4</b>: Farhana ties with #3, so she is included too.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 21 · 06 OFFSET FETCH -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">06</span> TOP &amp; paging</div>
+    <h2 class="a" style="--i:1">OFFSET … FETCH: skip some rows, then take some</h2>
+    <div class="body" style="flex-direction:column;align-items:stretch;justify-content:center;gap:18px">
+      <div class="two" style="grid-template-columns:1.1fr 1fr">
+        <div class="code sm a left" style="--i:2">
+          <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">SELECT</span>   name, cgpa
+<span class="kw">FROM</span>     Students
+<span class="kw">ORDER BY</span> cgpa <span class="kw">DESC</span>              <span class="cm">-- required</span>
+<span class="kw">OFFSET</span> 3 <span class="kw">ROWS</span>                   <span class="cm">-- skip 3</span>
+<span class="kw">FETCH NEXT</span> 3 <span class="kw">ROWS ONLY</span>;        <span class="cm">-- take 3</span></pre>
+        </div>
+        <div class="rulelist">
+          <div class="card a right" style="--i:3"><b class="i">📄</b> This is how websites show “page 2 of results”.</div>
+          <div class="card a right" style="--i:4"><b class="i">🧮</b> Page <i>p</i> with <i>n</i> per page: <code>OFFSET (p−1)×n ROWS FETCH NEXT n ROWS ONLY</code></div>
+          <div class="card a right" style="--i:5"><b class="i">🔁</b> MySQL / PostgreSQL write it as <code>LIMIT 3 OFFSET 3</code>. Same idea, different dialect.</div>
+        </div>
+      </div>
+      <div class="pages a" style="--i:6">
+        <div class="pg"><small>SKIPPED · OFFSET 3</small><span><i class="rk">1</i>Sumaiya 3.98</span><span><i class="rk">2</i>Nusrat 3.90</span><span><i class="rk">3</i>Rahim 3.75</span></div>
+        <div class="pg on"><small>RETURNED · FETCH 3</small><span><i class="rk">4</i>Karim 3.60</span><span><i class="rk">5</i>Mim 3.55</span><span><i class="rk">6</i>Farhana 3.45</span></div>
+        <div class="pg"><small>NOT REACHED</small><span><i class="rk">7</i>Shafin 3.30</span><span><i class="rk">8</i>Tania 3.20</span><span><i class="rk">9</i>Nabil 3.10</span></div>
+        <div class="pg"><small>NOT REACHED</small><span><i class="rk">10</i>Sakib 2.85</span><span><i class="rk">11</i>Arif 2.60</span><span><i class="rk">12</i>Riya <i class="null">NULL</i></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 22 · 06 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">06</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">TOP &amp; paging: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span><code>SELECT TOP 3 name FROM Students;</code> Which 3 students?</div><div class="ans frag">Any 3. Without ORDER BY, SQL Server picks whichever rows are fastest to read.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>Can you use OFFSET … FETCH without ORDER BY?</div><div class="ans frag">No. SQL Server gives an error: skipping rows only makes sense in a fixed order.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>The 2 students with the fewest credits.</div><div class="sol frag"><span class="kw">SELECT TOP</span> 2 name, credits <span class="kw">FROM</span> Students
+<span class="kw">ORDER BY</span> credits;   <span class="cm">-- Riya 0, Arif 45</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>A → Z list, 5 names per page. Show page 2.</div><div class="sol frag"><span class="kw">SELECT</span> name <span class="kw">FROM</span> Students <span class="kw">ORDER BY</span> name
+<span class="kw">OFFSET</span> 5 <span class="kw">ROWS FETCH NEXT</span> 5 <span class="kw">ROWS ONLY</span>;
+<span class="cm">-- Nusrat, Rahim, Riya, Sakib, Shafin</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 23 · Part 2 divider -->
+  <section class="slide dark">
+    <div class="section">
+      <div class="big-num a fade" style="--i:0">02</div>
+      <div class="kicker a" style="--i:1">Part two</div>
+      <h2 class="a" style="--i:2">Filtering rows</h2>
+      <div class="topics">
+        <span class="a" style="--i:3">WHERE &amp; comparisons</span><span class="a" style="--i:4">AND / OR / NOT</span>
+        <span class="a" style="--i:5">IN</span><span class="a" style="--i:6">BETWEEN</span>
+        <span class="a" style="--i:7">LIKE</span><span class="a" style="--i:8">NULL</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 24 · 07 WHERE sieve -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">07</span> WHERE &amp; comparisons</div>
+    <h2 class="a" style="--i:1">WHERE is a sieve: only TRUE rows pass</h2>
+    <div class="body">
+      <div class="two" style="grid-template-columns:auto 1fr;gap:44px">
+        <div class="tbl-wrap a left" style="--i:2">
+          <table class="tbl xs">
+            <tr><th>name</th><th>city</th><th>city = 'Sylhet'?</th></tr>
+            <tr class="keep"><td>Rahim</td><td>Sylhet</td><td>✓ TRUE</td></tr>
+            <tr class="drop" style="--d:1"><td>Karim</td><td>Dhaka</td><td>✗ FALSE</td></tr>
+            <tr class="keep"><td>Nusrat</td><td>Sylhet</td><td>✓ TRUE</td></tr>
+            <tr class="drop" style="--d:2"><td>Tania</td><td>Chattogram</td><td>✗ FALSE</td></tr>
+            <tr class="keep"><td>Sakib</td><td>Sylhet</td><td>✓ TRUE</td></tr>
+            <tr class="drop" style="--d:3"><td>Farhana</td><td>Dhaka</td><td>✗ FALSE</td></tr>
+            <tr class="drop" style="--d:4"><td>Nabil</td><td>Khulna</td><td>✗ FALSE</td></tr>
+            <tr class="keep"><td>Sumaiya</td><td>Sylhet</td><td>✓ TRUE</td></tr>
+            <tr class="drop" style="--d:5"><td>Arif</td><td>Rajshahi</td><td>✗ FALSE</td></tr>
+            <tr class="keep"><td>Mim</td><td>Sylhet</td><td>✓ TRUE</td></tr>
+            <tr class="drop" style="--d:6"><td>Shafin</td><td>Chattogram</td><td>✗ FALSE</td></tr>
+            <tr class="drop" style="--d:7"><td>Riya</td><td>Dhaka</td><td>✗ FALSE</td></tr>
+          </table>
+        </div>
+        <div class="stackv">
+          <div class="code sm a right" style="--i:3">
+            <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">SELECT</span> name, city
+<span class="kw">FROM</span>   Students
+<span class="kw">WHERE</span>  city <span class="op">=</span> <span class="str">'Sylhet'</span>;</pre>
+          </div>
+          <div class="rcount a fade" style="--i:10">✓ Result · 5 rows of 12</div>
+          <div class="sieve-note">
+            <div class="card a right" style="--i:5">🔎 SQL checks the condition <b>row by row</b>. TRUE rows stay, the rest are dropped.</div>
+            <div class="card a right" style="--i:6">✍️ Text and dates in <b>single quotes</b>: <code>'Sylhet'</code>, <code>'2023-01-01'</code>. Numbers without: <code>3.5</code>.</div>
+            <div class="card a right" style="--i:7">🔡 <code>'sylhet'</code> also matches: SQL Server's default comparison ignores case.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 25 · 07 Comparison operators -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">07</span> WHERE &amp; comparisons</div>
+    <h2 class="a" style="--i:1">Six comparison operators</h2>
+    <div class="body">
+      <table class="tbl sm ops a" style="--i:2">
+        <tr><th>Op</th><th>Meaning</th><th>Example</th><th>Who matches</th><th style="text-align:right">Rows</th></tr>
+        <tr><td>=</td><td>equal to</td><td><code>city = 'Sylhet'</code></td><td class="res">Rahim, Nusrat, Sakib, Sumaiya, Mim</td><td class="cnt">5</td></tr>
+        <tr><td>&lt;&gt; or !=</td><td>not equal to</td><td><code>department &lt;&gt; 'CSE'</code></td><td class="res">everyone except the 4 CSE students</td><td class="cnt">8</td></tr>
+        <tr><td>&gt;</td><td>greater than</td><td><code>cgpa &gt; 3.75</code></td><td class="res">Nusrat, Sumaiya (Rahim's 3.75 is <i>not</i> greater)</td><td class="cnt">2</td></tr>
+        <tr><td>&gt;=</td><td>greater than or equal</td><td><code>cgpa &gt;= 3.50</code></td><td class="res">Rahim, Karim, Nusrat, Sumaiya, Mim</td><td class="cnt">5</td></tr>
+        <tr><td>&lt;</td><td>less than</td><td><code>credits &lt; 80</code></td><td class="res">Sakib, Nabil, Arif, Riya</td><td class="cnt">4</td></tr>
+        <tr><td>&lt;=</td><td>less than or equal</td><td><code>admission_date &lt;= '2021-12-31'</code></td><td class="res">Nusrat, Sumaiya (admitted in 2021)</td><td class="cnt">2</td></tr>
+      </table>
+    </div>
+    <div class="quote a" style="--i:4;margin-top:14px;text-align:center;font-size:19px;font-weight:600">Dates compare like numbers: earlier is “smaller”. <code style="background:var(--yellow-l);padding:2px 8px;border-radius:6px">admission_date &gt;= '2023-01-01'</code> = admitted in 2023 or later.</div>
+  </section>
+
+  <!-- 26 · 07 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">07</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">WHERE &amp; comparisons: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>Why is <code>'Sylhet'</code> in quotes but <code>3.5</code> is not?</div><div class="ans frag">Text and dates need single quotes. Without them SQL thinks <code>Sylhet</code> is a column name.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>How many rows: <code>WHERE credits &gt;= 120</code>?</div><div class="ans frag">3: Rahim 120, Nusrat 132, Sumaiya 140. With <code>&gt;</code> only 2: Rahim drops out.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>Students who have completed 100 or more credits.</div><div class="sol frag"><span class="kw">SELECT</span> name, credits <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> credits <span class="op">&gt;=</span> 100;   <span class="cm">-- 5 rows</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>Students who are <b>not</b> from Sylhet.</div><div class="sol frag"><span class="kw">SELECT</span> name, city <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> city <span class="op">&lt;&gt;</span> <span class="str">'Sylhet'</span>;  <span class="cm">-- 7 rows</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 27 · 08 AND OR NOT -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">08</span> AND / OR / NOT</div>
+    <h2 class="a" style="--i:1">Combine conditions with AND, OR, NOT</h2>
+    <div class="body">
+      <div class="logic">
+        <div class="tt-wrap a left" style="--i:2">
+          <table class="tt">
+            <tr><th>A</th><th>B</th><th>A AND B</th><th>A OR B</th></tr>
+            <tr><td class="T">T</td><td class="T">T</td><td class="res T">T</td><td class="res T">T</td></tr>
+            <tr><td class="T">T</td><td class="F">F</td><td class="res F">F</td><td class="res T">T</td></tr>
+            <tr><td class="F">F</td><td class="T">T</td><td class="res F">F</td><td class="res T">T</td></tr>
+            <tr><td class="F">F</td><td class="F">F</td><td class="res F">F</td><td class="res F">F</td></tr>
+          </table>
+          <div class="card" style="padding:14px 16px;font-size:15px;line-height:1.5"><b>AND</b>: both must be true (stricter, fewer rows)<br><b>OR</b>: at least one true (looser, more rows)<br><b>NOT</b>: flips TRUE ↔ FALSE</div>
+        </div>
+        <div class="lex">
+          <div class="card a right" style="--i:3">
+            <div class="mini"><span class="kw">WHERE</span> department <span class="op">=</span> <span class="str">'CSE'</span>
+  <span class="kw">AND</span> cgpa <span class="op">&gt;=</span> 3.5</div>
+            <div class="out"><b>2 rows</b>: Karim 3.60, Sumaiya 3.98<br><span class="muted">CSE <i>and</i> a good CGPA</span></div>
+          </div>
+          <div class="card a right" style="--i:4">
+            <div class="mini"><span class="kw">WHERE</span> city <span class="op">=</span> <span class="str">'Khulna'</span>
+   <span class="kw">OR</span> city <span class="op">=</span> <span class="str">'Rajshahi'</span></div>
+            <div class="out"><b>2 rows</b>: Nabil, Arif<br><span class="muted">from either city</span></div>
+          </div>
+          <div class="card a right" style="--i:5">
+            <div class="mini"><span class="kw">WHERE NOT</span> department <span class="op">=</span> <span class="str">'SWE'</span></div>
+            <div class="out"><b>8 rows</b>: all except the 4 SWE<br><span class="muted">same as <code>&lt;&gt; 'SWE'</code></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 28 · 08 Precedence -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">08</span> AND / OR / NOT</div>
+    <h2 class="a" style="--i:1">The trap: AND runs before OR</h2>
+    <p class="lead a" style="--i:2">Goal: <b style="color:var(--ink)">SWE or CSE students with a CGPA above 3.5</b>.</p>
+    <div class="body">
+      <div class="prec">
+        <div class="card bad a left" style="--i:3">
+          <h3>✗ Without brackets: 6 rows</h3>
+          <div class="mini"><span class="kw">WHERE</span> department <span class="op">=</span> <span class="str">'SWE'</span>
+   <span class="kw">OR</span> department <span class="op">=</span> <span class="str">'CSE'</span> <span class="kw">AND</span> cgpa <span class="op">&gt;</span> 3.5</div>
+          <p class="how">SQL reads it as <b>SWE OR (CSE AND cgpa &gt; 3.5)</b>, so <b>every</b> SWE student gets in, even low CGPAs.</p>
+          <div class="chips"><span>Rahim</span><span>Nusrat</span><span class="w">Nabil 3.10</span><span class="w">Riya NULL</span><span>Karim</span><span>Sumaiya</span></div>
+        </div>
+        <div class="card good a right" style="--i:5">
+          <h3>✓ With brackets: 4 rows</h3>
+          <div class="mini"><span class="kw">WHERE</span> (department <span class="op">=</span> <span class="str">'SWE'</span>
+   <span class="kw">OR</span>  department <span class="op">=</span> <span class="str">'CSE'</span>)
+  <span class="kw">AND</span> cgpa <span class="op">&gt;</span> 3.5</div>
+          <p class="how">Brackets run first, then the CGPA rule applies to <b>both</b> departments.</p>
+          <div class="chips"><span class="k">Rahim 3.75</span><span class="k">Nusrat 3.90</span><span class="k">Karim 3.60</span><span class="k">Sumaiya 3.98</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="quote a" style="--i:7;margin-top:12px;text-align:center;font-size:19px;font-weight:600">Order: <b style="background:var(--yellow-l);padding:2px 8px;border-radius:6px">( )</b> → NOT → AND → OR. When you mix AND and OR, <b>always use brackets</b>.</div>
+  </section>
+
+  <!-- 29 · 08 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">08</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">AND / OR / NOT: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span><code>WHERE city = 'Sylhet' AND city = 'Dhaka'</code>: how many rows?</div><div class="ans frag">0. A student can't live in two cities at once. You meant <b>OR</b>.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>Adding another <b>AND</b> condition gives more rows or fewer?</div><div class="ans frag">Same or fewer: AND makes the filter stricter. Adding OR gives the same or more.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>SWE students who live in Sylhet.</div><div class="sol frag"><span class="kw">SELECT</span> name <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> department <span class="op">=</span> <span class="str">'SWE'</span> <span class="kw">AND</span> city <span class="op">=</span> <span class="str">'Sylhet'</span>;
+<span class="cm">-- Rahim, Nusrat</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>EEE or BBA students with a CGPA above 3.0.</div><div class="sol frag"><span class="kw">SELECT</span> name, department, cgpa <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> (department <span class="op">=</span> <span class="str">'EEE'</span> <span class="kw">OR</span> department <span class="op">=</span> <span class="str">'BBA'</span>)
+  <span class="kw">AND</span> cgpa <span class="op">&gt;</span> 3.0;  <span class="cm">-- Tania, Farhana, Mim</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 30 · 09 IN -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">09</span> IN</div>
+    <h2 class="a" style="--i:1">IN: “is the value in this list?”</h2>
+    <div class="body">
+      <div class="two even">
+        <div class="stackv">
+          <div class="code xs a left" style="--i:2">
+            <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="cm">-- the long way</span>
+<span class="kw">WHERE</span> city <span class="op">=</span> <span class="str">'Dhaka'</span> <span class="kw">OR</span> city <span class="op">=</span> <span class="str">'Chattogram'</span>
+
+<span class="cm">-- the short way: same result</span>
+<span class="kw">WHERE</span> city <span class="kw">IN</span> (<span class="str">'Dhaka'</span>, <span class="str">'Chattogram'</span>)</pre>
+          </div>
+          <div class="tbl-wrap a left" style="--i:4">
+            <div class="rcount">✓ 5 rows</div>
+            <div class="chips"><span>Karim · Dhaka</span><span>Tania · Chattogram</span><span>Farhana · Dhaka</span><span>Shafin · Chattogram</span><span>Riya · Dhaka</span></div>
+          </div>
+        </div>
+        <div class="stackv">
+          <div class="code xs a right" style="--i:5">
+            <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">WHERE</span> city <span class="kw">NOT IN</span> (<span class="str">'Sylhet'</span>, <span class="str">'Dhaka'</span>)</pre>
+          </div>
+          <div class="tbl-wrap a right" style="--i:6">
+            <div class="rcount">✓ 4 rows</div>
+            <div class="chips"><span>Tania · Chattogram</span><span>Nabil · Khulna</span><span>Arif · Rajshahi</span><span>Shafin · Chattogram</span></div>
+          </div>
+          <div class="rulelist">
+            <div class="card a right" style="--i:7"><b class="i">🔢</b> Works for numbers too: <code>student_id IN (101, 105, 109)</code></div>
+            <div class="card a right" style="--i:8"><b class="i">📏</b> Shorter, easier to read, easy to add one more value.</div>
+            <div class="card a right" style="--i:9"><b class="i">⚠️</b> If the NOT IN list contains a NULL, you get <b>0 rows</b>. Keep NULLs out of the list.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 31 · 09 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">09</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">IN: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>Rewrite with IN: <code>dept = 'SWE' OR dept = 'CSE' OR dept = 'EEE'</code></div><div class="ans frag"><code>department IN ('SWE', 'CSE', 'EEE')</code></div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>IN is a shortcut for many ___ joined by ___.</div><div class="ans frag">Many <code>=</code> conditions joined by <b>OR</b>. (NOT IN = many <code>&lt;&gt;</code> joined by AND.)</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>Students with ID 101, 105 or 109.</div><div class="sol frag"><span class="kw">SELECT</span> student_id, name <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> student_id <span class="kw">IN</span> (101, 105, 109);
+<span class="cm">-- Rahim, Sakib, Arif</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>Students who are in neither CSE nor SWE.</div><div class="sol frag"><span class="kw">SELECT</span> name, department <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> department <span class="kw">NOT IN</span> (<span class="str">'CSE'</span>, <span class="str">'SWE'</span>);
+<span class="cm">-- Tania, Farhana, Arif, Mim</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 32 · 10 BETWEEN -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">10</span> BETWEEN</div>
+    <h2 class="a" style="--i:1">BETWEEN: a range, both ends included</h2>
+    <div class="body" style="flex-direction:column;align-items:stretch;justify-content:center;gap:14px">
+      <div class="code xs a" style="--i:2;align-self:flex-start;padding:26px 24px 16px">
+        <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">SELECT</span> name, cgpa <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span>  cgpa <span class="kw">BETWEEN</span> 3.00 <span class="kw">AND</span> 3.50;   <span class="cm">-- same as cgpa &gt;= 3.00 AND cgpa &lt;= 3.50  →  4 rows</span></pre>
+      </div>
+      <div class="nline a fade" style="--i:3">
+        <div class="axis"></div><div class="band"></div>
+        <span class="tick" style="left:0%">2.50</span><span class="tick b" style="left:33.33%">3.00</span><span class="tick b" style="left:66.67%">3.50</span><span class="tick" style="left:100%">4.00</span>
+        <i class="dot" style="left:6.7%"></i><span class="lbl up" style="left:6.7%">Arif<br>2.60</span>
+        <i class="dot" style="left:23.3%"></i><span class="lbl dn" style="left:23.3%">Sakib<br>2.85</span>
+        <i class="dot in" style="left:40%"></i><span class="lbl up in" style="left:40%">Nabil<br>3.10</span>
+        <i class="dot in" style="left:46.7%"></i><span class="lbl dn in" style="left:46.7%">Tania<br>3.20</span>
+        <i class="dot in" style="left:53.3%"></i><span class="lbl up in" style="left:53.3%">Shafin<br>3.30</span>
+        <i class="dot in" style="left:63.3%"></i><span class="lbl dn in" style="left:58%">Farhana<br>3.45</span>
+        <i class="dot" style="left:70%"></i><span class="lbl up" style="left:68%">Mim<br>3.55</span>
+        <i class="dot" style="left:73.3%"></i><span class="lbl dn" style="left:75%">Karim<br>3.60</span>
+        <i class="dot" style="left:83.3%"></i><span class="lbl up" style="left:83.3%">Rahim<br>3.75</span>
+        <i class="dot" style="left:93.3%"></i><span class="lbl dn" style="left:91%">Nusrat<br>3.90</span>
+        <i class="dot" style="left:98.7%"></i><span class="lbl up" style="left:97%">Sumaiya<br>3.98</span>
+      </div>
+      <div class="gotchas" style="gap:14px">
+        <div class="card a" style="--i:5;padding:14px 16px"><h3 style="font-size:16px">📅 Dates</h3><div class="mini" style="font-size:13px"><span class="kw">WHERE</span> admission_date <span class="kw">BETWEEN</span>
+  <span class="str">'2022-01-01'</span> <span class="kw">AND</span> <span class="str">'2022-12-31'</span></div><p>5 rows: everyone admitted in 2022.</p></div>
+        <div class="card a" style="--i:6;padding:14px 16px"><h3 style="font-size:16px">↔️ Small value first</h3><div class="mini" style="font-size:13px"><span class="kw">BETWEEN</span> 3.50 <span class="kw">AND</span> 3.00  <span class="x">→ 0 rows</span></div><p>Reversed bounds never match anything. No error, just nothing.</p></div>
+        <div class="card a" style="--i:7;padding:14px 16px"><h3 style="font-size:16px">⏰ Date + time columns</h3><div class="mini" style="font-size:13px"><span class="kw">WHERE</span> t <span class="op">&gt;=</span> <span class="str">'2022-01-01'</span>
+  <span class="kw">AND</span> t <span class="op">&lt;</span>  <span class="str">'2023-01-01'</span></div><p>A DATETIME of 31 Dec 3 pm is after '2022-12-31'. Use &gt;= and &lt; instead.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 33 · 10 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">10</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">BETWEEN: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>Does <code>credits BETWEEN 60 AND 100</code> include Sakib (60) and Mim (100)?</div><div class="ans frag">Yes, both. BETWEEN includes both ends.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>Write <code>cgpa NOT BETWEEN 3.0 AND 3.5</code> without BETWEEN.</div><div class="ans frag"><code>cgpa &lt; 3.0 OR cgpa &gt; 3.5</code></div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>Students with 60 to 100 credits.</div><div class="sol frag"><span class="kw">SELECT</span> name, credits <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> credits <span class="kw">BETWEEN</span> 60 <span class="kw">AND</span> 100;  <span class="cm">-- 6 rows</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>Students admitted during 2023.</div><div class="sol frag"><span class="kw">SELECT</span> name, admission_date <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> admission_date
+  <span class="kw">BETWEEN</span> <span class="str">'2023-01-01'</span> <span class="kw">AND</span> <span class="str">'2023-12-31'</span>;
+<span class="cm">-- Tania, Sakib, Nabil</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 34 · 11 LIKE -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">11</span> LIKE patterns</div>
+    <h2 class="a" style="--i:1">LIKE searches text with wildcards</h2>
+    <div class="body" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
+      <div class="wild">
+        <div class="card a pop" style="--i:2"><div class="sym">%</div><h3>Any number of characters</h3><p>Zero, one or many. <code>'S%'</code> = starts with S</p></div>
+        <div class="card a pop" style="--i:3"><div class="sym">_</div><h3>Exactly one character</h3><p><code>'_a%'</code> = 2nd letter is a</p></div>
+        <div class="card a pop" style="--i:4"><div class="sym">[ ]</div><h3>One of these</h3><p><code>'[NR]%'</code> = starts with N or R. Ranges work: <code>[a-f]</code></p></div>
+        <div class="card a pop" style="--i:5"><div class="sym">[^ ]</div><h3>None of these</h3><p><code>'[^NRS]%'</code> = does not start with N, R or S</p></div>
+      </div>
+      <table class="tbl xs likes a" style="--i:7">
+        <tr><th>WHERE name LIKE …</th><th>Meaning</th><th>Rows</th><th>Matches</th></tr>
+        <tr><td><code>'S%'</code></td><td>starts with S</td><td>3</td><td>Sakib, Sumaiya, Shafin</td></tr>
+        <tr><td><code>'%a'</code></td><td>ends with a</td><td>4</td><td>Tania, Farhana, Sumaiya, Riya</td></tr>
+        <tr><td><code>'%im'</code></td><td>ends with im</td><td>3</td><td>Rahim, Karim, Mim</td></tr>
+        <tr><td><code>'_a%'</code></td><td>second letter is a</td><td>6</td><td>Rahim, Karim, Tania, Sakib, Farhana, Nabil</td></tr>
+        <tr><td><code>'[NR]%'</code></td><td>starts with N or R</td><td>4</td><td>Rahim, Nusrat, Nabil, Riya</td></tr>
+        <tr><td><code>'%@lu.ac.bd'</code> (email)</td><td>ends with the LU domain</td><td>9</td><td>everyone with an email (NULLs never match)</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 35 · 11 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">11</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">LIKE: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>Does <code>name LIKE 'S%'</code> match a student named just “S”?</div><div class="ans frag">Yes. <code>%</code> also matches zero characters.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>What is wrong with <code>WHERE name = 'S%'</code>?</div><div class="ans frag"><code>=</code> has no wildcards: it looks for a name that is literally “S%”. Use <b>LIKE</b>.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>Names that contain “ar” anywhere.</div><div class="sol frag"><span class="kw">SELECT</span> name <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'%ar%'</span>;
+<span class="cm">-- Karim, Farhana, Arif  (case-insensitive!)</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>Names with exactly 4 letters.</div><div class="sol frag"><span class="kw">SELECT</span> name <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'____'</span>;   <span class="cm">-- 4 underscores</span>
+<span class="cm">-- Arif, Riya</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 36 · 12 NULL concept -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">12</span> NULL</div>
+    <h2 class="a" style="--i:1">NULL means “unknown”, not zero, not empty</h2>
+    <div class="body" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
+      <div class="nullgrid">
+        <div class="card a pop" style="--i:2"><div class="big">0</div><p>A known number: Riya has <b>0 credits</b>.</p></div>
+        <div class="card a pop" style="--i:3"><div class="big">''</div><p>Known, but empty text: an email of zero characters.</p></div>
+        <div class="card n a pop" style="--i:4"><div class="big">NULL</div><p><b>We don't know</b>: Riya's CGPA doesn't exist yet. Tania never gave an email.</p></div>
+      </div>
+      <div class="vs2">
+        <div class="card bad a left" style="--i:6">
+          <h3>✗ = NULL never works</h3>
+          <div class="mini"><span class="kw">SELECT</span> name <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> email <span class="op">=</span> <span class="kw">NULL</span>;      <span class="x">→ 0 rows</span></div>
+          <p style="font-size:15px;color:var(--muted)">“Is unknown equal to unknown?” → unknown. Not TRUE, so no row passes.</p>
+        </div>
+        <div class="card good a right" style="--i:7">
+          <h3>✓ Use IS NULL / IS NOT NULL</h3>
+          <div class="mini"><span class="kw">WHERE</span> email <span class="kw">IS NULL</span>;      <span class="r">→ Tania, Farhana, Arif</span>
+<span class="kw">WHERE</span> email <span class="kw">IS NOT NULL</span>;  <span class="r">→ 9 rows</span></div>
+          <p style="font-size:15px;color:var(--muted)">The only correct way to test for a missing value.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 37 · 12 NULL logic + ISNULL -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">12</span> NULL</div>
+    <h2 class="a" style="--i:1">Three answers: TRUE, FALSE and UNKNOWN</h2>
+    <div class="body">
+      <div class="two even" style="align-items:start">
+        <div class="stackv">
+          <div class="tvl">
+            <div class="card a pop" style="--i:2"><div class="v" style="color:var(--ok)">TRUE</div><p>row is kept</p></div>
+            <div class="card a pop" style="--i:3"><div class="v" style="color:var(--bad)">FALSE</div><p>row is dropped</p></div>
+            <div class="card a pop" style="--i:4"><div class="v" style="color:var(--orange)">UNKNOWN</div><p>row is dropped too</p></div>
+          </div>
+          <div class="card a" style="--i:5;padding:16px 18px">
+            <div class="mini" style="font-size:14px"><span class="kw">WHERE</span> cgpa <span class="op">&lt;</span>  3.5   <span class="r">→ 6 rows</span>
+<span class="kw">WHERE</span> cgpa <span class="op">&gt;=</span> 3.5   <span class="r">→ 5 rows</span></div>
+            <div class="sum-line" style="margin-top:12px"><span>6</span>+<span>5</span>=<span>11</span>≠<span>12</span><span class="miss">Riya is in neither</span></div>
+            <p style="font-size:15px;color:var(--muted);margin-top:10px;line-height:1.45">“Is NULL &lt; 3.5?” is UNKNOWN, and so is “NULL &gt;= 3.5”. Rows with NULL silently vanish from both filters.</p>
+          </div>
+        </div>
+        <div class="stackv">
+          <div class="code xs a right" style="--i:6">
+            <div class="dots"><i></i><i></i><i></i></div>
+<pre><span class="kw">SELECT</span> name,
+  <span class="fn">ISNULL</span>(email, <span class="str">'not given'</span>) <span class="kw">AS</span> email,
+  <span class="fn">COALESCE</span>(cgpa, 0)          <span class="kw">AS</span> cgpa
+<span class="kw">FROM</span> Students;</pre>
+          </div>
+          <table class="tbl xs a right" style="--i:7">
+            <tr><th>name</th><th>email</th><th>cgpa</th></tr>
+            <tr><td>Tania</td><td><b>not given</b></td><td class="num">3.20</td></tr>
+            <tr><td>Farhana</td><td><b>not given</b></td><td class="num">3.45</td></tr>
+            <tr><td>Riya</td><td>riya@lu.ac.bd</td><td class="num"><b>0.00</b></td></tr>
+          </table>
+          <div class="rulelist">
+            <div class="card a right" style="--i:8"><b class="i">ISNULL(x, y)</b> if x is NULL, show y. SQL Server only.</div>
+            <div class="card a right" style="--i:9"><b class="i">COALESCE(a, b, c…)</b> first non-NULL value. Standard SQL, works everywhere.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 38 · 12 Practice -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0"><span class="num">12</span> Check &amp; practice</div>
+    <h2 class="a" style="--i:1">NULL: your turn <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="practice">
+        <div class="col">
+          <div class="col-h a" style="--i:2">❓ Questions</div>
+          <div class="card a" style="--i:3"><div class="q"><span>Q1</span>What does <code>WHERE email = NULL</code> return, and why?</div><div class="ans frag">0 rows. Comparing anything to NULL gives UNKNOWN, and WHERE keeps only TRUE.</div></div>
+          <div class="card a" style="--i:4"><div class="q"><span>Q2</span>Does <code>WHERE email &lt;&gt; 'rahim@lu.ac.bd'</code> return Tania?</div><div class="ans frag">No. Her email is NULL, so the test is UNKNOWN: 8 rows, not 11. Add <code>OR email IS NULL</code> to include her.</div></div>
+        </div>
+        <div class="col">
+          <div class="col-h ex a" style="--i:2">🛠️ Exercise · in SSMS</div>
+          <div class="card exc a" style="--i:5"><div class="q"><span>E1</span>Students who have not given an email.</div><div class="sol frag"><span class="kw">SELECT</span> name <span class="kw">FROM</span> Students
+<span class="kw">WHERE</span> email <span class="kw">IS NULL</span>;   <span class="cm">-- Tania, Farhana, Arif</span></div></div>
+          <div class="card exc a" style="--i:6"><div class="q"><span>E2</span>Name and CGPA, showing 0 when the CGPA is missing.</div><div class="sol frag"><span class="kw">SELECT</span> name,
+  <span class="fn">COALESCE</span>(cgpa, 0) <span class="kw">AS</span> cgpa
+<span class="kw">FROM</span> Students;     <span class="cm">-- Riya → 0.00</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 39 · Logical order -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Putting it together</div>
+    <h2 class="a" style="--i:1">You write it in one order. SQL runs it in another.</h2>
+    <div class="body">
+      <div class="order">
+        <div class="stackv">
+          <div class="code sm a left" style="--i:2">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="line"><span><span class="kw">SELECT</span> name, cgpa <span class="kw">AS</span> gpa</span><span class="rn">3</span></div>
+            <div class="line"><span><span class="kw">FROM</span>   Students</span><span class="rn">1</span></div>
+            <div class="line"><span><span class="kw">WHERE</span>  city <span class="op">=</span> <span class="str">'Sylhet'</span></span><span class="rn">2</span></div>
+            <div class="line"><span><span class="kw">ORDER BY</span> gpa <span class="kw">DESC</span>;</span><span class="rn">4</span></div>
+          </div>
+          <div class="tbl-wrap a left" style="--i:4">
+            <div class="rcount">✓ Result · 5 rows</div>
+            <div class="chips"><span>Sumaiya 3.98</span><span>Nusrat 3.90</span><span>Rahim 3.75</span><span>Mim 3.55</span><span>Sakib 2.85</span></div>
+          </div>
+        </div>
+        <div class="runorder">
+          <div class="st a right" style="--i:5"><b>1</b><code>FROM</code><span>pick the table</span></div>
+          <div class="st a right" style="--i:6"><b>2</b><code>WHERE</code><span>keep rows that are TRUE</span></div>
+          <div class="st hot a right" style="--i:7"><b>3</b><code>SELECT</code><span>choose columns, create aliases</span></div>
+          <div class="st a right" style="--i:8"><b>4</b><code>DISTINCT</code><span>remove repeated rows</span></div>
+          <div class="st a right" style="--i:9"><b>5</b><code>ORDER BY</code><span>sort (aliases already exist ✓)</span></div>
+          <div class="st a right" style="--i:10"><b>6</b><code>TOP / OFFSET</code><span>cut down to the rows you asked for</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="quote a" style="--i:12;margin-top:12px;text-align:center;font-size:19px;font-weight:600">That is why <b style="background:var(--yellow-l);padding:2px 8px;border-radius:6px">WHERE gpa &gt; 3.5</b> fails but <b style="background:var(--yellow-l);padding:2px 8px;border-radius:6px">ORDER BY gpa</b> works.</div>
+  </section>
+
+  <!-- 40 · Common mistakes -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Putting it together</div>
+    <h2 class="a" style="--i:1">Six mistakes everyone makes (once)</h2>
+    <div class="body">
+      <div class="mist">
+        <div class="card a pop" style="--i:2"><h3>1 · Double quotes for text</h3><div class="mini"><span class="x">WHERE city = "Sylhet"</span>
+<span class="r">WHERE city = 'Sylhet'</span></div></div>
+        <div class="card a pop" style="--i:3"><h3>2 · = NULL</h3><div class="mini"><span class="x">WHERE email = NULL</span>
+<span class="r">WHERE email IS NULL</span></div></div>
+        <div class="card a pop" style="--i:4"><h3>3 · Comma before FROM</h3><div class="mini"><span class="x">SELECT name, cgpa, FROM …</span>
+<span class="r">SELECT name, cgpa FROM …</span></div></div>
+        <div class="card a pop" style="--i:5"><h3>4 · AND + OR without brackets</h3><div class="mini"><span class="x">a OR b AND c</span>
+<span class="r">(a OR b) AND c</span></div></div>
+        <div class="card a pop" style="--i:6"><h3>5 · Alias in WHERE</h3><div class="mini"><span class="x">WHERE [Credits Left] &gt; 50</span>
+<span class="r">WHERE 144 - credits &gt; 50</span></div></div>
+        <div class="card a pop" style="--i:7"><h3>6 · TOP without ORDER BY</h3><div class="mini"><span class="x">SELECT TOP 3 name …</span>
+<span class="r">… ORDER BY cgpa DESC</span></div></div>
+      </div>
+    </div>
+    <div class="quote a" style="--i:9;margin-top:14px;text-align:center;font-size:18px;font-weight:600">In SQL Server, <b style="background:var(--yellow-l);padding:2px 8px;border-radius:6px">"double quotes"</b> mean a column name, so <code>"Sylhet"</code> gives <i>Invalid column name 'Sylhet'</i>.</div>
+  </section>
+
+  <!-- 41 · Challenge: Products -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Challenge · new table</div>
+    <h2 class="a" style="--i:1">Use everything on <span class="blue">Products</span> <span class="hint-t">(press → for answers)</span></h2>
+    <div class="body">
+      <div class="chal">
+        <table class="tbl xs a left" style="--i:2">
+          <tr><th>id</th><th>product_name</th><th>category</th><th>list_price</th></tr>
+          <tr><td class="num">1</td><td>Laptop</td><td>Electronics</td><td class="num">65,000</td></tr>
+          <tr><td class="num">2</td><td>Smartphone</td><td>Electronics</td><td class="num">28,000</td></tr>
+          <tr><td class="num">3</td><td>Headphones</td><td>Electronics</td><td class="num">3,500</td></tr>
+          <tr><td class="num">4</td><td>Smart Watch</td><td>Electronics</td><td class="num">9,000</td></tr>
+          <tr><td class="num">5</td><td>Office Chair</td><td>Furniture</td><td class="num">12,000</td></tr>
+          <tr><td class="num">6</td><td>Study Table</td><td>Furniture</td><td class="num">15,000</td></tr>
+          <tr><td class="num">7</td><td>Bookshelf</td><td>Furniture</td><td class="num">8,000</td></tr>
+          <tr><td class="num">8</td><td>T-Shirt</td><td>Clothing</td><td class="num">600</td></tr>
+          <tr><td class="num">9</td><td>Jeans</td><td>Clothing</td><td class="num">1,800</td></tr>
+          <tr><td class="num">10</td><td>Jacket</td><td>Clothing</td><td class="num">4,500</td></tr>
+          <tr><td class="num">11</td><td>Rice (25kg)</td><td>Groceries</td><td class="num">1,900</td></tr>
+          <tr><td class="num">12</td><td>Tea Pack</td><td>Groceries</td><td class="num">450</td></tr>
+          <tr><td class="num">13</td><td>Cooking Oil (5L)</td><td>Groceries</td><td class="num">950</td></tr>
+        </table>
+        <div class="tasks">
+          <div class="card a right" style="--i:3"><div class="q"><span>C1</span>All Electronics, most expensive first.</div><div class="sol frag"><span class="kw">WHERE</span> category <span class="op">=</span> <span class="str">'Electronics'</span>
+<span class="kw">ORDER BY</span> list_price <span class="kw">DESC</span>  <span class="cm">-- 4</span></div></div>
+          <div class="card a right" style="--i:4"><div class="q"><span>C2</span>Priced from ৳1,000 to ৳10,000.</div><div class="sol frag"><span class="kw">WHERE</span> list_price
+  <span class="kw">BETWEEN</span> 1000 <span class="kw">AND</span> 10000    <span class="cm">-- 6</span></div></div>
+          <div class="card a right" style="--i:5"><div class="q"><span>C3</span>The 3 cheapest products.</div><div class="sol frag"><span class="kw">SELECT TOP</span> 3 …
+<span class="kw">ORDER BY</span> list_price  <span class="cm">-- Tea, T-Shirt, Oil</span></div></div>
+          <div class="card a right" style="--i:6"><div class="q"><span>C4</span>Clothing or Groceries under ৳1,000.</div><div class="sol frag"><span class="kw">WHERE</span> category <span class="kw">IN</span> (<span class="str">'Clothing'</span>,<span class="str">'Groceries'</span>)
+  <span class="kw">AND</span> list_price <span class="op">&lt;</span> 1000      <span class="cm">-- 3</span></div></div>
+          <div class="card a right" style="--i:7"><div class="q"><span>C5</span>Every category, once.</div><div class="sol frag"><span class="kw">SELECT DISTINCT</span> category
+<span class="kw">FROM</span> Products            <span class="cm">-- 4</span></div></div>
+          <div class="card a right" style="--i:8"><div class="q"><span>C6</span>Products with “Smart” in the name.</div><div class="sol frag"><span class="kw">WHERE</span> product_name
+  <span class="kw">LIKE</span> <span class="str">'%Smart%'</span>          <span class="cm">-- 2</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 42 · Final quiz -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Final check</div>
+    <h2 class="a" style="--i:1">Can you answer these? <span class="hint-t">(press → to reveal)</span></h2>
+    <div class="body">
+      <div class="quiz">
+        <div class="card a" style="--i:2"><div class="q"><span>Q1</span>Which runs first: WHERE or SELECT?</div><div class="ans frag">WHERE (right after FROM). SELECT comes 3rd.</div></div>
+        <div class="card a" style="--i:3"><div class="q"><span>Q2</span>Names starting with R and CGPA ≥ 3.5: query and result?</div><div class="ans frag"><code>WHERE name LIKE 'R%' AND cgpa &gt;= 3.5</code> → only Rahim (Riya's CGPA is NULL)</div></div>
+        <div class="card a" style="--i:4"><div class="q"><span>Q3</span><code>SELECT DISTINCT department FROM Students WHERE city = 'Sylhet'</code>: how many rows?</div><div class="ans frag">3: SWE, CSE, EEE (5 Sylhet students, 3 departments)</div></div>
+        <div class="card a" style="--i:5"><div class="q"><span>Q4</span>Which is the right tool: “IDs 101, 104, 110”, “CGPA from 3 to 3.5”, “email missing”?</div><div class="ans frag"><b>IN</b> · <b>BETWEEN</b> · <b>IS NULL</b></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 43 · Recap -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Recap</div>
+    <h2 class="a" style="--i:1">What to remember from today</h2>
+    <div class="body">
+      <div class="recap">
+        <div class="card a pop" style="--i:2"><div class="badge">📋</div><p><b>SELECT</b> chooses columns, <b>FROM</b> the table. Use <code>AS</code> to rename and math to calculate.</p></div>
+        <div class="card a pop" style="--i:3"><div class="badge">🧹</div><p><b>DISTINCT</b> removes repeated rows. <b>ORDER BY</b> sorts: ASC by default, DESC for big → small.</p></div>
+        <div class="card a pop" style="--i:4"><div class="badge">🥇</div><p><b>TOP n</b> (with ORDER BY!) for “top 3”. <b>OFFSET … FETCH</b> for pages.</p></div>
+        <div class="card part2 a pop" style="--i:5"><div class="badge" style="background:var(--orange-l)">🔍</div><p><b>WHERE</b> keeps TRUE rows. <code>= &lt;&gt; &gt; &lt; &gt;= &lt;=</code>. Text in 'single quotes'.</p></div>
+        <div class="card part2 a pop" style="--i:6"><div class="badge" style="background:var(--orange-l)">🔀</div><p><b>AND</b> narrows, <b>OR</b> widens, brackets decide. <b>IN</b> = a list, <b>BETWEEN</b> = a range (ends included).</p></div>
+        <div class="card part2 a pop" style="--i:7"><div class="badge" style="background:var(--orange-l)">❔</div><p><b>LIKE</b> with <code>%</code> and <code>_</code>. NULL = unknown: test with <b>IS NULL</b>, replace with <b>COALESCE</b>.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 44 · Homework -->
+  <section class="slide">
+    <div class="kicker a" style="--i:0">Homework · before Day 03</div>
+    <h2 class="a" style="--i:1">Five queries to write on your own</h2>
+    <div class="body">
+      <div class="hw">
+        <ol class="a left" style="--i:2">
+          <li>Top 5 students by CGPA, leaving out anyone without a CGPA.</li>
+          <li>Students from Sylhet or Dhaka admitted before 2023, oldest admission first. <span class="muted">(6 rows)</span></li>
+          <li>Products that are <b>not</b> Furniture and cost more than ৳1,000, cheapest first. <span class="muted">(7 rows)</span></li>
+          <li>Students whose name ends with “n” or “m”.</li>
+          <li>Final-year students (120+ credits), most credits first.</li>
+        </ol>
+        <div class="stackv">
+          <div class="card a right" style="--i:3">
+            <h3>📄 Everything is in one file</h3>
+            <p>Setup, every example from these slides, all E1/E2 solutions, the challenge and the homework answers (Part E, try first!).</p>
+            <a class="dl" href="day02_practice.sql" download>⬇ day02_practice.sql</a>
+          </div>
+          <div class="card a right" style="--i:4">
+            <h3>✅ How to check yourself</h3>
+            <ul>
+              <li>Predict the row count <b>before</b> pressing F5.</li>
+              <li>Compare with the 12-row table on slide 6.</li>
+              <li>Different count? Look for missing brackets or a NULL.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 45 · Closing -->
+  <section class="slide dark">
+    <div class="closing">
+      <div>
+        <div class="kicker a" style="--i:0">That's Day 02</div>
+        <h1 class="a" style="--i:1;font-size:80px;margin-top:16px;white-space:nowrap">Questions? <span class="floaty">🙋</span></h1>
+        <p class="lead a" style="--i:2">You can now pick any columns and any rows from a table. Next we summarise them.</p>
+      </div>
+      <div class="next-card a right" style="--i:3">
+        <span class="pill" style="background:var(--yellow);color:var(--navy)">NEXT · DAY 03</span>
+        <h3>Aggregation and functions</h3>
+        <ul>
+          <li>COUNT, SUM, AVG, MIN, MAX</li>
+          <li>GROUP BY and HAVING: “how many per city?”</li>
+          <li>Text, date and CASE functions</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<script src="../assets/deck.js"></script>
+</body>
+</html>
